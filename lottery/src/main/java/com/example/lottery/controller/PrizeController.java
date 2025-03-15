@@ -35,4 +35,13 @@ public class PrizeController {
     public Prize getRandomPrizeByRarityAndType(@PathVariable int rarity, @PathVariable String fiveStarType) {
         return prizeService.getRandomPrizeByRarityAndType(rarity, fiveStarType);
     }
+    @GetMapping("/draw")
+    public Prize drawPrize() {
+        return prizeService.drawPrize(); // 调用 PrizeService 中的抽奖逻辑
+    }
+    @PostMapping
+    public Prize addPrize(@RequestBody Prize prize) {
+        return prizeService.savePrize(prize);
+    }
+
 }
