@@ -1,5 +1,7 @@
 package com.example.lottery;
 
+import org.springframework.context.annotation.Bean;
+
 // 玩家抽奖状态
 public class LotteryState {
     private int totalDraws;           // 总抽奖次数

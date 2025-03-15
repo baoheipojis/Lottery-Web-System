@@ -42,21 +42,37 @@ public class DefaultLotteryStrategy implements LotteryStrategy {
             return handleFiveStar(state);
         } else if (roll < fiveStarProb + fourStarProb) {
             state.resetSinceLastFourStar();
-            return prizeRepository.findByRarity(4).get(random.nextInt(prizeRepository.findByRarity(4).size()));
+            return getRandomPrizeByRarity(4);
         } else {
-            return prizeRepository.findByRarity(3).get(random.nextInt(prizeRepository.findByRarity(3).size()));
+            return getRandomPrizeByRarity(3);
         }
     }
 
     private Prize handleFiveStar(LotteryState state) {
         if (state.getLastFiveStar() == LotteryState.FiveStarType.NORMAL) {
             state.setLastFiveStar(LotteryState.FiveStarType.LIMITED);
-            return prizeRepository.findByRarityAndFiveStarType(5, "limited").get(random.nextInt(prizeRepository.findByRarityAndFiveStarType(5, "limited").size()));
+            return getRandomPrizeByRarityAndType(5, "limited");
         } else {
             boolean isLimited = random.nextBoolean();
             state.setLastFiveStar(isLimited ? LotteryState.FiveStarType.LIMITED : LotteryState.FiveStarType.NORMAL);
-            return isLimited ? prizeRepository.findByRarityAndFiveStarType(5, "limited").get(random.nextInt(prizeRepository.findByRarityAndFiveStarType(5, "limited").size()))
-                    : prizeRepository.findByRarityAndFiveStarType(5, "normal").get(random.nextInt(prizeRepository.findByRarityAndFiveStarType(5, "normal").size()));
+            return isLimited ? getRandomPrizeByRarityAndType(5, "limited")
+                    : getRandomPrizeByRarityAndType(5, "normal");
         }
+    }
+
+    private Prize getRandomPrizeByRarity(int rarity) {
+        var prizes = prizeRepository.findByRarity(rarity);
+        if (prizes.isEmpty()) {
+            throw new IllegalStateException("No prizes available for the draw.");
+        }
+        return prizes.get(random.nextInt(prizes.size()));
+    }
+
+    private Prize getRandomPrizeByRarityAndType(int rarity, String type) {
+        var prizes = prizeRepository.findByRarityAndFiveStarType(rarity, type);
+        if (prizes.isEmpty()) {
+            throw new IllegalStateException("No prizes available for the draw.");
+        }
+        return prizes.get(random.nextInt(prizes.size()));
     }
 }
