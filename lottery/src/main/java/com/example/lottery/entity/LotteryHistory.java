@@ -1,54 +1,58 @@
+// src/main/java/com/example/lottery/entity/LotteryHistory.java
 package com.example.lottery.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+
+import java.time.ZonedDateTime;
 
 @Entity
 @Table(name = "lottery_history")
 public class LotteryHistory {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 奖品结果描述，比如 "三星奖品"、"四星奖品"、"普通五星奖品" 或 "限定五星奖品"
-    @Column(nullable = false)
-    private String result;
+    @Column(name = "draw_time")
+    private ZonedDateTime drawTime;
 
-    // 奖品稀有度：3、4、5；对于五星，我们再通过 fiveStarType 区分
-    @Column(nullable = false)
+    @Column(name = "prize_name")
+    private String prizeName;
+
+    @Column(name = "rarity")
     private int rarity;
 
-    // 当 rarity 为 5 时，用来区分五星类型（例如 "normal" 或 "limited"，其它情况可为空）
-    @Column
+    @Column(name = "five_star_type")
     private String fiveStarType;
 
-    // 抽奖时间
-    @Column(nullable = false)
-    private LocalDateTime drawTime;
+    @Column(name = "result", nullable = false)
+    private String result;
 
-    public LotteryHistory() {
-    }
+    @Column(name = "prize_id", nullable = false)
+    private Long prizeId;
 
-    public LotteryHistory(String result, int rarity, String fiveStarType, LocalDateTime drawTime) {
-        this.result = result;
-        this.rarity = rarity;
-        this.fiveStarType = fiveStarType;
-        this.drawTime = drawTime;
-    }
-
-    // Getter 和 Setter
-
+    // Getters and setters
     public Long getId() {
         return id;
     }
 
-    public String getResult() {
-        return result;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public void setResult(String result) {
-        this.result = result;
+    public ZonedDateTime getDrawTime() {
+        return drawTime;
+    }
+
+    public void setDrawTime(ZonedDateTime drawTime) {
+        this.drawTime = drawTime;
+    }
+
+    public String getPrizeName() {
+        return prizeName;
+    }
+
+    public void setPrizeName(String prizeName) {
+        this.prizeName = prizeName;
     }
 
     public int getRarity() {
@@ -67,11 +71,19 @@ public class LotteryHistory {
         this.fiveStarType = fiveStarType;
     }
 
-    public LocalDateTime getDrawTime() {
-        return drawTime;
+    public String getResult() {
+        return result;
     }
 
-    public void setDrawTime(LocalDateTime drawTime) {
-        this.drawTime = drawTime;
+    public void setResult(String result) {
+        this.result = result;
+    }
+
+    public Long getPrizeId() {
+        return prizeId;
+    }
+
+    public void setPrizeId(Long prizeId) {
+        this.prizeId = prizeId;
     }
 }

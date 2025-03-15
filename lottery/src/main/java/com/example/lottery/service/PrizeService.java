@@ -1,26 +1,32 @@
+// src/main/java/com/example/lottery/service/PrizeService.java
 package com.example.lottery.service;
 
+import com.example.lottery.entity.LotteryHistory;
 import com.example.lottery.entity.Prize;
+import com.example.lottery.repository.LotteryHistoryRepository;
 import com.example.lottery.repository.PrizeRepository;
 import com.example.lottery.LotteryContext;
 import com.example.lottery.LotteryState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.Random;
 
 @Service
 public class PrizeService {
 
     private final PrizeRepository prizeRepository;
-    private final Random random = new Random();
+    private final LotteryHistoryRepository lotteryHistoryRepository;
     private final LotteryContext lotteryContext;
     private final LotteryState lotteryState;
 
     @Autowired
-    public PrizeService(PrizeRepository prizeRepository, LotteryContext lotteryContext, LotteryState lotteryState) {
+    public PrizeService(PrizeRepository prizeRepository, LotteryHistoryRepository lotteryHistoryRepository, LotteryContext lotteryContext, LotteryState lotteryState) {
         this.prizeRepository = prizeRepository;
+        this.lotteryHistoryRepository = lotteryHistoryRepository;
         this.lotteryContext = lotteryContext;
         this.lotteryState = lotteryState;
     }
@@ -29,20 +35,29 @@ public class PrizeService {
         return prizeRepository.findAll();
     }
 
-
     public Prize savePrize(Prize prize) {
         return prizeRepository.save(prize);
     }
 
-// src/main/java/com/example/lottery/service/PrizeService.java
-public Prize drawPrize() {
-    Prize prize = lotteryContext.executeDraw(lotteryState);
-    if (prize != null) {
-        prizeRepository.save(prize); // Ensure the prize is saved
-        if (!prize.getIsRepeatable()) {
-            prizeRepository.delete(prize);
+    public Prize drawPrize() {
+        Prize prize = lotteryContext.executeDraw(lotteryState);
+        if (prize != null) {
+            if (!prize.getIsRepeatable()) {
+                prizeRepository.delete(prize);
+            }
+            // Save draw history
+            LotteryHistory history = new LotteryHistory();
+            LocalDateTime now = LocalDateTime.now();
+            ZonedDateTime beijingTime = now.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("Asia/Shanghai"));
+            history.setDrawTime(beijingTime);
+            history.setPrizeName(prize.getName());
+            history.setRarity(prize.getRarity());
+            history.setFiveStarType(prize.getRarity() == 5 ? prize.getFiveStarType() : null);
+            history.setResult("Success"); // Set the result field
+            history.setPrizeId(prize.getId()); // Set the prizeId field
+
+            lotteryHistoryRepository.save(history);
         }
+        return prize;
     }
-    return prize;
-}
 }

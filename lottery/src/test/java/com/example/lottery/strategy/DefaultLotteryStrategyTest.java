@@ -2,6 +2,7 @@ package com.example.lottery.strategy;
 
 import com.example.lottery.LotteryState;
 import com.example.lottery.entity.Prize;
+import com.example.lottery.repository.LotteryHistoryRepository;
 import com.example.lottery.repository.PrizeRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,11 +19,14 @@ class DefaultLotteryStrategyTest {
     private LotteryState state;
     private PrizeRepository prizeRepository;
 
+    private LotteryHistoryRepository lotteryHistoryRepository;
+
     @BeforeEach
     void setUp() {
         prizeRepository = Mockito.mock(PrizeRepository.class);
         strategy = new DefaultLotteryStrategy(prizeRepository);
-        state = new LotteryState();
+        lotteryHistoryRepository = Mockito.mock(LotteryHistoryRepository.class);
+        state = new LotteryState(lotteryHistoryRepository);
 
         // Mock prize data
         List<Prize> threeStarPrizes = List.of(new Prize("三星奖品", 3, null, "三星奖品描述"));

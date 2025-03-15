@@ -1,18 +1,27 @@
+// src/main/java/com/example/lottery/LotteryState.java
 package com.example.lottery;
 
-import org.springframework.context.annotation.Bean;
+import com.example.lottery.entity.LotteryHistory;
+import com.example.lottery.repository.LotteryHistoryRepository;
 
-// 玩家抽奖状态
+import java.util.List;
+
 public class LotteryState {
-    private int totalDraws;           // 总抽奖次数
-    private int sinceLastFourStar;    // 距离上次抽到四星的抽数
-    private int sinceLastFiveStar;    // 距离上次抽到五星的抽数
-    private FiveStarType lastFiveStar; // 上一次五星的类型（普通/限定）
+    private int totalDraws;
+    private int sinceLastFourStar;
+    private int sinceLastFiveStar;
+    private FiveStarType lastFiveStar;
 
-    // 定义五星类型枚举
     public enum FiveStarType {
-        NORMAL,    // 普通五星
-        LIMITED    // 限定五星
+        NORMAL,
+        LIMITED
+    }
+
+    private final LotteryHistoryRepository lotteryHistoryRepository;
+
+    public LotteryState(LotteryHistoryRepository lotteryHistoryRepository) {
+        this.lotteryHistoryRepository = lotteryHistoryRepository;
+        loadHistory();
     }
 
     public int getTotalDraws() {
@@ -53,5 +62,28 @@ public class LotteryState {
 
     public void setLastFiveStar(FiveStarType lastFiveStar) {
         this.lastFiveStar = lastFiveStar;
+    }
+
+    public void loadHistory() {
+        List<LotteryHistory> history = lotteryHistoryRepository.findAll();
+        totalDraws = history.size();
+        if (!history.isEmpty()) {
+            LotteryHistory lastHistory = history.get(history.size() - 1);
+            sinceLastFourStar = calculateSinceLastStar(history, 4);
+            sinceLastFiveStar = calculateSinceLastStar(history, 5);
+            lastFiveStar = lastHistory.getFiveStarType() != null ?
+                FiveStarType.valueOf(lastHistory.getFiveStarType().toUpperCase()) : null;
+        }
+    }
+
+    private int calculateSinceLastStar(List<LotteryHistory> history, int rarity) {
+        int count = 0;
+        for (int i = history.size() - 1; i >= 0; i--) {
+            if (history.get(i).getRarity() == rarity) {
+                break;
+            }
+            count++;
+        }
+        return count;
     }
 }

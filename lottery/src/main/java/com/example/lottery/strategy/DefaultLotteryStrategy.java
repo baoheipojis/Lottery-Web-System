@@ -29,6 +29,7 @@ public class DefaultLotteryStrategy implements LotteryStrategy {
         state.incrementSinceLastFourStar();
         state.incrementSinceLastFiveStar();
 
+ 
         double fourStarProb = (state.getSinceLastFourStar() >= FOUR_STAR_GUARANTEE) ? 0.561 : BASE_FOUR_STAR_PROB;
         double fiveStarProb = (state.getSinceLastFiveStar() >= FIVE_STAR_GUARANTEE)
                 ? BASE_FIVE_STAR_PROB + 0.06 * (state.getSinceLastFiveStar() - FIVE_STAR_GUARANTEE + 1)
@@ -40,7 +41,7 @@ public class DefaultLotteryStrategy implements LotteryStrategy {
             state.resetSinceLastFiveStar();
             state.resetSinceLastFourStar();
             return handleFiveStar(state);
-        } else if (roll < fiveStarProb + fourStarProb) {
+        } else if (roll < fiveStarProb + fourStarProb||state.getSinceLastFourStar() >= 9) {
             state.resetSinceLastFourStar();
             return getRandomPrizeByRarity(4);
         } else {
