@@ -5,44 +5,51 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
+@Transactional
 class PrizeRepositoryTest {
 
     @Autowired
     private PrizeRepository prizeRepository;
 
-    @Test
-    @DisplayName("测试保存奖品并根据稀有度和五星类型查询")
-    void testSaveAndFindByRarityAndFiveStarType() {
-        // 创建并保存几种不同的奖品
-        Prize prize3Star = new Prize("30-50CNY充入加密货币", 3, null, "三星奖品示例");
-        Prize prize4Star = new Prize("200 CNY充入加密货币", 4, null, "四星奖品示例");
-        Prize normalFiveStarPrize = new Prize("普通五星奖品示例", 5, "normal", "普通五星奖品描述");
-        Prize limitedFiveStarPrize = new Prize("限定五星奖品示例", 5, "limited", "限定五星奖品描述");
+@Test
+@DisplayName("测试保存奖品并根据稀有度和五星类型查询")
+void testSaveAndFindByRarityAndFiveStarType() {
+    // 记录插入前的奖品数量
+    int initialThreeStarCount = prizeRepository.findByRarity(3).size();
+    int initialFourStarCount = prizeRepository.findByRarity(4).size();
+    int initialNormalFiveStarCount = prizeRepository.findByRarityAndFiveStarType(5, "normal").size();
+    int initialLimitedFiveStarCount = prizeRepository.findByRarityAndFiveStarType(5, "limited").size();
 
-        prizeRepository.save(prize3Star);
-        prizeRepository.save(prize4Star);
-        prizeRepository.save(normalFiveStarPrize);
-        prizeRepository.save(limitedFiveStarPrize);
+    // 创建并保存几种不同的奖品
+    Prize prize3Star = new Prize("30-50CNY充入加密货币", 3, null, "三星奖品示例");
+    Prize prize4Star = new Prize("200 CNY充入加密货币", 4, null, "四星奖品示例");
+    Prize normalFiveStarPrize = new Prize("普通五星奖品示例", 5, "normal", "普通五星奖品描述");
+    Prize limitedFiveStarPrize = new Prize("限定五星奖品示例", 5, "limited", "限定五星奖品描述");
 
-        // 根据稀有度查询
-        List<Prize> threeStarPrizes = prizeRepository.findByRarity(3);
-        List<Prize> fourStarPrizes = prizeRepository.findByRarity(4);
-        List<Prize> normalFiveStarPrizes = prizeRepository.findByRarityAndFiveStarType(5, "normal");
-        List<Prize> limitedFiveStarPrizes = prizeRepository.findByRarityAndFiveStarType(5, "limited");
+    prizeRepository.save(prize3Star);
+    prizeRepository.save(prize4Star);
+    prizeRepository.save(normalFiveStarPrize);
+    prizeRepository.save(limitedFiveStarPrize);
 
-        // 验证查询结果
-        assertEquals(1, threeStarPrizes.size(), "3星奖品数量应为1");
-        assertEquals(1, fourStarPrizes.size(), "4星奖品数量应为1");
-        assertEquals(1, normalFiveStarPrizes.size(), "普通5星奖品数量应为1");
-        assertEquals(1, limitedFiveStarPrizes.size(), "限定5星奖品数量应为1");
-    }
+    // 根据稀有度查询
+    List<Prize> threeStarPrizes = prizeRepository.findByRarity(3);
+    List<Prize> fourStarPrizes = prizeRepository.findByRarity(4);
+    List<Prize> normalFiveStarPrizes = prizeRepository.findByRarityAndFiveStarType(5, "normal");
+    List<Prize> limitedFiveStarPrizes = prizeRepository.findByRarityAndFiveStarType(5, "limited");
 
+    // 验证插入后的奖品数量是否增加
+    assertEquals(initialThreeStarCount + 1, threeStarPrizes.size(), "3星奖品数量应增加1");
+    assertEquals(initialFourStarCount + 1, fourStarPrizes.size(), "4星奖品数量应增加1");
+    assertEquals(initialNormalFiveStarCount + 1, normalFiveStarPrizes.size(), "普通5星奖品数量应增加1");
+    assertEquals(initialLimitedFiveStarCount + 1, limitedFiveStarPrizes.size(), "限定5星奖品数量应增加1");
+}
     @Test
     @DisplayName("测试奖品更新功能")
     void testUpdatePrize() {
