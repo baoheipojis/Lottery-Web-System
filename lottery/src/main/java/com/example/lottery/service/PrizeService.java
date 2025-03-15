@@ -29,31 +29,20 @@ public class PrizeService {
         return prizeRepository.findAll();
     }
 
-    public Prize getRandomPrizeByRarity(int rarity) {
-        List<Prize> prizes = prizeRepository.findByRarity(rarity);
-        if (prizes.isEmpty()) {
-            throw new IllegalArgumentException("没有稀有度为 " + rarity + " 的奖品");
-        }
-        return prizes.get(random.nextInt(prizes.size()));
-    }
-
-    public Prize getRandomPrizeByRarityAndType(int rarity, String fiveStarType) {
-        List<Prize> prizes = prizeRepository.findByRarityAndFiveStarType(rarity, fiveStarType);
-        if (prizes.isEmpty()) {
-            throw new IllegalArgumentException("没有稀有度为 " + rarity + " 和类型为 " + fiveStarType + " 的奖品");
-        }
-        return prizes.get(random.nextInt(prizes.size()));
-    }
 
     public Prize savePrize(Prize prize) {
         return prizeRepository.save(prize);
     }
 
-    public Prize drawPrize() {
-        Prize prize = lotteryContext.executeDraw(lotteryState);
-        if (prize != null && !prize.getIsRepeatable()) {
+// src/main/java/com/example/lottery/service/PrizeService.java
+public Prize drawPrize() {
+    Prize prize = lotteryContext.executeDraw(lotteryState);
+    if (prize != null) {
+        prizeRepository.save(prize); // Ensure the prize is saved
+        if (!prize.getIsRepeatable()) {
             prizeRepository.delete(prize);
         }
-        return prize;
     }
+    return prize;
+}
 }

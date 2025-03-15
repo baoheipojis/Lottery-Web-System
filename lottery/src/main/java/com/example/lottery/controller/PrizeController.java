@@ -24,17 +24,6 @@ public class PrizeController {
         return prizeService.getAllPrizes();
     }
 
-    // 按稀有度随机获取一个奖品
-    @GetMapping("/random/{rarity}")
-    public Prize getRandomPrizeByRarity(@PathVariable int rarity) {
-        return prizeService.getRandomPrizeByRarity(rarity);
-    }
-
-    // 按稀有度和五星类型随机获取一个奖品
-    @GetMapping("/random/{rarity}/{fiveStarType}")
-    public Prize getRandomPrizeByRarityAndType(@PathVariable int rarity, @PathVariable String fiveStarType) {
-        return prizeService.getRandomPrizeByRarityAndType(rarity, fiveStarType);
-    }
     @GetMapping("/draw")
     public Prize drawPrize() {
         return prizeService.drawPrize(); // 调用 PrizeService 中的抽奖逻辑
