@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Random;
 
-@Component
+@Component("defaultLotteryStrategy")
 public class DefaultLotteryStrategy implements LotteryStrategy {
     private static final double BASE_FOUR_STAR_PROB = 0.051;
     private static final double BASE_FIVE_STAR_PROB = 0.006;
