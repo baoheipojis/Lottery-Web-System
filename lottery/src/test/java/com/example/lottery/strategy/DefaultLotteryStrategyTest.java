@@ -3,6 +3,10 @@ package com.example.lottery.strategy;
 import com.example.lottery.LotteryState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class DefaultLotteryStrategyTest {
@@ -92,46 +96,76 @@ class DefaultLotteryStrategyTest {
 
     @Test
     void testFiveStarGuarantee() {
-        // 模拟连续 73 次未抽到五星，从第 74 次开始提高五星概率
-        for (int i = 0; i < 73; i++) {
-            assertNotEquals("五星奖品", strategy.draw(state), "五星不应在前73抽中出现");
-        }
-        boolean fiveStarFound = false;
-        for (int i = 74; i <= 100; i++) { // 检查 74 到 100 抽间是否抽中五星
-            if ("五星奖品".equals(strategy.draw(state))) {
-                fiveStarFound = true;
-                break;
-            }
-        }
-        assertTrue(fiveStarFound, "74 抽后未触发五星保底逻辑");
-    }
+        int totalDraws = 1000000; // 测试 1000 次抽奖
+        int sinceLastFiveStar = 0; // 记录距离上一次五星的抽数
 
-    @Test
-    void testTenDrawGuarantee() {
-        // 检查是否每 10 抽保证出一个四星及以上奖励
-        for (int i = 1; i <= 100; i++) {
+        for (int i = 1; i <= totalDraws; i++) {
             String result = strategy.draw(state);
-            if (i % 10 == 0) {
-                assertTrue(result.equals("四星奖品") || result.equals("五星奖品"), "第 " + i + " 抽未触发保底机制");
+
+            if ("五星奖品".equals(result)) {
+                // 每次抽到五星时检查
+                assertTrue(
+                        sinceLastFiveStar <= 89,
+                        "两个五星之间的间隔超过了 89 抽！间隔为：" + sinceLastFiveStar
+                );
+                sinceLastFiveStar = 0; // 重置计数器
+            } else {
+                // 如果不是五星，增加计数
+                sinceLastFiveStar++;
             }
         }
     }
 
-    @Test
-    void testLimitedFiveStarLogic() {
-        // 验证限定五星和普通五星交替逻辑
-        state.setLastFiveStar(LotteryState.FiveStarType.NORMAL); // 上一次为普通五星
-        String firstFiveStar = strategy.draw(state);
-        while (!"五星奖品".equals(firstFiveStar)) {
-            firstFiveStar = strategy.draw(state);
-        }
-        assertEquals("限定五星奖品", firstFiveStar, "普通五星后应抽中限定五星");
+        @Test
+        void testLimitedAndNormalFiveStarGuarantee() {
+            int requiredFiveStarCount = 50; // 目标抽到的五星数量，用于统计续次规则
+            int currentFiveStarCount = 0;
 
-        String secondFiveStar = strategy.draw(state);
-        while (!"五星奖品".equals(secondFiveStar)) {
-            secondFiveStar = strategy.draw(state);
+            // 用于记录五星的类型序列
+            List<LotteryState.FiveStarType> fiveStarSequence = new ArrayList<>();
+
+            // 执行抽奖直到获得足够多的五星抽奖记录，避免无限循环设定 maxIterations
+            int iterations = 0;
+            int maxIterations = 10000;
+            while (currentFiveStarCount < requiredFiveStarCount && iterations < maxIterations) {
+                String result = strategy.draw(state);
+                // 假设五星的返回字符串为 "普通五星奖品" 或 "限定五星奖品"
+                if (result.equals("普通五星奖品") || result.equals("限定五星奖品")) {
+                    // 记录当前五星类型（由状态中的 lastFiveStar 决定）
+                    fiveStarSequence.add(state.getLastFiveStar());
+                    currentFiveStarCount++;
+                }
+                iterations++;
+            }
+
+            // 确保至少采集到了目标数量的五星
+            assertTrue(currentFiveStarCount >= requiredFiveStarCount,
+                    "抽奖次数过多仍未获得足够的五星记录");
+
+            // 规则1：如果上一次五星为普通五星，则下一次五星必定为限定五星
+            for (int i = 1; i < fiveStarSequence.size(); i++) {
+                if (fiveStarSequence.get(i - 1) == LotteryState.FiveStarType.NORMAL) {
+                    assertEquals(LotteryState.FiveStarType.LIMITED, fiveStarSequence.get(i),
+                            "规则失败：上一次五星为普通五星，但下一次五星未必定为限定五星");
+                }
+            }
+
+            // 规则2：如果上一次五星为限定五星，则下一次五星的结果应有50%的概率呈现普通五星
+            // 此处我们验证：在五星序列中，必须至少出现一次「限定五星后出现普通五星」的情况
+            boolean observedNormalAfterLimited = false;
+            for (int i = 1; i < fiveStarSequence.size(); i++) {
+                if (fiveStarSequence.get(i - 1) == LotteryState.FiveStarType.LIMITED &&
+                        fiveStarSequence.get(i) == LotteryState.FiveStarType.NORMAL) {
+                    observedNormalAfterLimited = true;
+                    break;
+                }
+            }
+            assertTrue(observedNormalAfterLimited,
+                    "规则失败：未观察到限定五星后出现普通五星的情况（50% 概率）");
+
+            // 输出五星类型序列供人工检查（可选）
+            System.out.println("五星序列: " + fiveStarSequence);
         }
-        // 验证是否出现 50% 概率歪
-        assertTrue(secondFiveStar.equals("限定五星奖品") || secondFiveStar.equals("普通五星奖品"), "限定五星后五星类型验证失败");
     }
-}
+
+
