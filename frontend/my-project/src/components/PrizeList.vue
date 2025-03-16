@@ -1,29 +1,27 @@
 <template>
   <div>
-    <h1>Lottery History</h1>
+    <h1>All Prizes</h1>
     <table>
       <thead>
         <tr>
-          <th>Draw Time</th>
-          <th>Prize</th>
-          <th>Rarity (stars)</th>
+          <th>Prize Name</th>
+          <th>Rarity</th>
         </tr>
       </thead>
       <tbody>
-        <tr
-          v-for="history in histories"
-          :key="history.id"
+        <tr 
+          v-for="prize in prizes" 
+          :key="prize.id"
           :class="{
-            'rarity-purple': history.rarity === 4,
-            'rarity-yellow': history.rarity === 5
+            'rarity-purple': prize.rarity === 4,
+            'rarity-yellow': prize.rarity === 5
           }"
         >
-          <td>{{ history.drawTime }}</td>
-          <td>{{ history.prizeName }}</td>
+          <td>{{ prize.name }}</td>
           <td>
-            {{ history.rarity === 5
-                ? (history.isLimited ? '限定五星' : '普通五星')
-                : (history.rarity + '星')
+            {{ prize.rarity === 5
+                ? (prize.fiveStarType?.toUpperCase() === 'LIMITED' ? '限定五星' : '普通五星')
+                : (prize.rarity + '星')
             }}
           </td>
         </tr>
@@ -38,20 +36,20 @@ import axios from 'axios';
 export default {
   data() {
     return {
-      histories: []
+      prizes: []
     };
   },
   created() {
-    this.fetchHistories();
+    this.fetchPrizes();
   },
   methods: {
-    fetchHistories() {
-      axios.get('/api/lottery-history')
+    fetchPrizes() {
+      axios.get('/api/prizes')
         .then(response => {
-          this.histories = response.data;
+          this.prizes = response.data;
         })
         .catch(error => {
-          console.error('Error fetching histories:', error);
+          console.error('Error fetching prizes:', error);
         });
     }
   }

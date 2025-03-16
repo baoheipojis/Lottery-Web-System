@@ -30,6 +30,11 @@ public class LotteryHistory {
     @Column(name = "prize_id", nullable = false)
     private Long prizeId;
 
+    @Transient
+    public boolean isLimited() {
+        return this.rarity == 5 && "LIMITED".equalsIgnoreCase(this.fiveStarType);
+    }
+
     // Getters and setters
     public Long getId() {
         return id;
