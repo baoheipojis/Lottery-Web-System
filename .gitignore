@@ -34,3 +34,4 @@ dist/
 # 忽略本地环境文件
 .env
 .env.local
+网络应用开发项目.code-workspace
