@@ -48,7 +48,7 @@ export default {
     fetchHistories() {
       axios.get('/api/lottery-history')
         .then(response => {
-          this.histories = response.data;
+          this.histories = response.data.sort((a,b) => new Date(b.drawTime) - new Date(a.drawTime));
         })
         .catch(error => {
           console.error('Error fetching histories:', error);

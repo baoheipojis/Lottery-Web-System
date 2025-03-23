@@ -35,13 +35,12 @@ public class DefaultLotteryStrategy implements LotteryStrategy {
                 ? BASE_FIVE_STAR_PROB + 0.06 * (state.getSinceLastFiveStar() - FIVE_STAR_GUARANTEE + 1)
                 : BASE_FIVE_STAR_PROB;
 
-//        double roll = ;
-
-        if (random.nextDouble() < fiveStarProb) {
+        double roll = random.nextDouble();
+        if (roll < fiveStarProb) {
             state.resetSinceLastFiveStar();
             state.resetSinceLastFourStar();
             return handleFiveStar(state);
-        } else if (random.nextDouble() <  fourStarProb||state.getSinceLastFourStar() >= 9) {
+        } else if (roll < fiveStarProb + fourStarProb || state.getSinceLastFourStar() >= 9) {
             state.resetSinceLastFourStar();
             return getRandomPrizeByRarity(4);
         } else {
