@@ -3,6 +3,7 @@ package com.example.lottery.controller;
 import com.example.lottery.entity.Prize;
 import com.example.lottery.service.PrizeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,9 +29,15 @@ public class PrizeController {
     public Prize drawPrize() {
         return prizeService.drawPrize(); // 调用 PrizeService 中的抽奖逻辑
     }
+    
     @PostMapping
     public Prize addPrize(@RequestBody Prize prize) {
         return prizeService.savePrize(prize);
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deletePrize(@PathVariable Long id) {
+        prizeService.deletePrize(id);
+        return ResponseEntity.ok().build();
+    }
 }

@@ -1,63 +1,33 @@
 // src/main/java/com/example/lottery/service/PrizeService.java
 package com.example.lottery.service;
 
-import com.example.lottery.entity.LotteryHistory;
 import com.example.lottery.entity.Prize;
-import com.example.lottery.repository.LotteryHistoryRepository;
-import com.example.lottery.repository.PrizeRepository;
-import com.example.lottery.LotteryContext;
-import com.example.lottery.LotteryState;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.List;
 
-@Service
-public class PrizeService {
-
-    private final PrizeRepository prizeRepository;
-    private final LotteryHistoryRepository lotteryHistoryRepository;
-    private final LotteryContext lotteryContext;
-    private final LotteryState lotteryState;
-
-    @Autowired
-    public PrizeService(PrizeRepository prizeRepository, LotteryHistoryRepository lotteryHistoryRepository, LotteryContext lotteryContext, LotteryState lotteryState) {
-        this.prizeRepository = prizeRepository;
-        this.lotteryHistoryRepository = lotteryHistoryRepository;
-        this.lotteryContext = lotteryContext;
-        this.lotteryState = lotteryState;
-    }
-
-    public List<Prize> getAllPrizes() {
-        return prizeRepository.findAll();
-    }
-
-    public Prize savePrize(Prize prize) {
-        return prizeRepository.save(prize);
-    }
-
-    public Prize drawPrize() {
-        Prize prize = lotteryContext.executeDraw(lotteryState);
-        if (prize != null) {
-            if (!prize.getIsRepeatable()) {
-                prizeRepository.delete(prize);
-            }
-            // Save draw history
-            LotteryHistory history = new LotteryHistory();
-            LocalDateTime now = LocalDateTime.now();
-            ZonedDateTime beijingTime = now.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("Asia/Shanghai"));
-            history.setDrawTime(beijingTime);
-            history.setPrizeName(prize.getName());
-            history.setRarity(prize.getRarity());
-            history.setFiveStarType(prize.getRarity() == 5 ? prize.getFiveStarType() : null);
-            history.setResult("Success"); // Set the result field
-            history.setPrizeId(prize.getId()); // Set the prizeId field
-
-            lotteryHistoryRepository.save(history);
-        }
-        return prize;
-    }
+public interface PrizeService {
+    
+    /**
+     * 获取所有奖品
+     * @return 奖品列表
+     */
+    List<Prize> getAllPrizes();
+    
+    /**
+     * 抽奖方法
+     * @return 抽中的奖品
+     */
+    Prize drawPrize();
+    
+    /**
+     * 保存新奖品
+     * @param prize 奖品信息
+     * @return 保存后的奖品（包含ID）
+     */
+    Prize savePrize(Prize prize);
+    
+    /**
+     * 删除奖品
+     * @param id 奖品ID
+     */
+    void deletePrize(Long id);
 }

@@ -14,7 +14,7 @@ public class Prize {
     private String name;
 
     @Column(nullable = false)
-    private int rarity;
+    private Integer rarity;
 
     @Column
     private String fiveStarType;
@@ -54,6 +54,10 @@ public class Prize {
         return id;
     }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public String getName() {
         return name;
     }
@@ -62,11 +66,11 @@ public class Prize {
         this.name = name;
     }
 
-    public int getRarity() {
+    public Integer getRarity() {
         return rarity;
     }
 
-    public void setRarity(int rarity) {
+    public void setRarity(Integer rarity) {
         this.rarity = rarity;
     }
 
