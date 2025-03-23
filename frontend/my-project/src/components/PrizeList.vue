@@ -7,6 +7,9 @@
       <button @click="drawPrize" class="draw-btn" :disabled="isDrawing">
         {{ isDrawing ? '抽取中...' : '抽 卡' }}
       </button>
+      <button @click="drawTenPrizes" class="draw-btn ten-draw" :disabled="isDrawing">
+        {{ isDrawing ? '抽取中...' : '十连抽' }}
+      </button>
     </div>
     
     <!-- Display status messages -->
@@ -134,15 +137,23 @@
         'rarity-3': drawnPrize && drawnPrize.rarity === 3,
         'rarity-4': drawnPrize && drawnPrize.rarity === 4,
         'rarity-5': drawnPrize && drawnPrize.rarity === 5,
+        'multi-draw': isMultiDraw
       }" @click.stop>
         <button class="close-modal" @click="closeDrawModal">&times;</button>
         
         <div class="modal-header">
           <h2>恭喜！</h2>
+          <div v-if="isMultiDraw" class="draw-navigation">
+            <span>{{ currentDrawIndex + 1 }} / {{ drawnPrizes.length }}</span>
+            <div class="nav-buttons">
+              <button @click="prevPrize" :disabled="currentDrawIndex === 0">&lt;</button>
+              <button @click="nextPrize" :disabled="currentDrawIndex >= drawnPrizes.length - 1">&gt;</button>
+            </div>
+          </div>
         </div>
         
         <div class="modal-body">
-          <div class="prize-card">
+          <div class="prize-card" v-if="!isMultiDraw">
             <div class="prize-rarity">
               {{ drawnPrize?.rarity === 5
                   ? (drawnPrize.fiveStarType?.toUpperCase() === 'LIMITED' ? '限定五星' : '普通五星')
@@ -155,11 +166,38 @@
               {{ isRepeatable(drawnPrize) ? '可重复获取' : '不可重复获取' }}
             </div>
           </div>
+          
+          <div v-if="isMultiDraw" class="multi-draw-container">
+            <div class="prize-card" v-if="currentDrawPrize">
+              <div class="prize-rarity">
+                {{ currentDrawPrize?.rarity === 5
+                    ? (currentDrawPrize.fiveStarType?.toUpperCase() === 'LIMITED' ? '限定五星' : '普通五星')
+                    : (currentDrawPrize?.rarity + '星')
+                }}
+              </div>
+              <div class="prize-name">{{ currentDrawPrize?.name }}</div>
+              <div class="prize-desc">{{ currentDrawPrize?.description }}</div>
+              <div class="prize-repeatable">
+                {{ isRepeatable(currentDrawPrize) ? '可重复获取' : '不可重复获取' }}
+              </div>
+            </div>
+            
+            <div class="prize-summary">
+              <div class="summary-title">十连抽结果统计：</div>
+              <div class="rarity-counts">
+                <span class="rarity-count rarity-3">3星: {{ countRarity(3) }}</span>
+                <span class="rarity-count rarity-4">4星: {{ countRarity(4) }}</span>
+                <span class="rarity-count rarity-5">5星: {{ countRarity(5) }}</span>
+              </div>
+            </div>
+          </div>
         </div>
         
         <div class="modal-footer">
           <button @click="closeDrawModal" class="modal-btn">确定</button>
-          <button @click="drawAgain" class="modal-btn draw-again-btn">再抽一次</button>
+          <button @click="isMultiDraw ? drawTenPrizes() : drawAgain()" class="modal-btn draw-again-btn">
+            {{ isMultiDraw ? '再十连抽' : '再抽一次' }}
+          </button>
         </div>
       </div>
     </div>
@@ -185,7 +223,12 @@ export default {
       showAddRow: true,
       isDrawing: false,
       drawnPrize: null,
-      showDrawModal: false
+      showDrawModal: false,
+      // New properties for 10-draw
+      isMultiDraw: false,
+      drawnPrizes: [],
+      currentDrawIndex: 0,
+      drawCount: 0
     };
   },
   created() {
@@ -194,6 +237,12 @@ export default {
   computed: {
     isFormValid() {
       return this.newPrize.name && this.newPrize.rarity;
+    },
+    currentDrawPrize() {
+      if (this.drawnPrizes.length > 0 && this.currentDrawIndex < this.drawnPrizes.length) {
+        return this.drawnPrizes[this.currentDrawIndex];
+      }
+      return null;
     }
   },
   methods: {
@@ -315,6 +364,7 @@ export default {
     },
     drawPrize() {
       this.isDrawing = true;
+      this.isMultiDraw = false;
       
       axios.get('/api/prizes/draw')
         .then(response => {
@@ -331,6 +381,28 @@ export default {
         });
     },
     
+    async drawTenPrizes() {
+      this.isDrawing = true;
+      this.isMultiDraw = true;
+      this.drawnPrizes = [];
+      this.currentDrawIndex = 0;
+      this.drawCount = 10;
+      
+      try {
+        for (let i = 0; i < 10; i++) {
+          const response = await axios.get('/api/prizes/draw');
+          this.drawnPrizes.push(response.data);
+        }
+        this.showDrawModal = true;
+      } catch (error) {
+        console.error('Error drawing 10 prizes:', error);
+        this.submitMessage = '十连抽失败: ' + (error.response?.data?.message || '未知错误');
+        this.submitStatus = 'error';
+      } finally {
+        this.isDrawing = false;
+      }
+    },
+    
     closeDrawModal() {
       this.showDrawModal = false;
     },
@@ -341,6 +413,22 @@ export default {
       setTimeout(() => {
         this.drawPrize();
       }, 300);
+    },
+    
+    nextPrize() {
+      if (this.currentDrawIndex < this.drawnPrizes.length - 1) {
+        this.currentDrawIndex++;
+      }
+    },
+    
+    prevPrize() {
+      if (this.currentDrawIndex > 0) {
+        this.currentDrawIndex--;
+      }
+    },
+    
+    countRarity(rarity) {
+      return this.drawnPrizes.filter(prize => prize.rarity === rarity).length;
     }
   },
   watch: {
@@ -556,6 +644,7 @@ h1 {
   display: flex;
   justify-content: center;
   margin: 30px 0;
+  gap: 15px;
 }
 
 .draw-btn {
@@ -587,6 +676,20 @@ h1 {
   cursor: not-allowed;
   transform: translateY(0);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.ten-draw {
+  background: linear-gradient(135deg, #9c27b0, #673ab7);
+}
+
+.ten-draw:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 7px 15px rgba(156, 39, 176, 0.5);
+}
+
+.ten-draw:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 5px rgba(156, 39, 176, 0.5);
 }
 
 /* Modal styles */
@@ -627,6 +730,10 @@ h1 {
 .modal-content.rarity-5 {
   border-color: #ffc107;
   box-shadow: 0 0 30px rgba(255, 193, 7, 0.8);
+}
+
+.modal-content.multi-draw {
+  max-width: 600px;
 }
 
 .close-modal {
@@ -729,5 +836,77 @@ h1 {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.draw-navigation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10px;
+  font-size: 16px;
+}
+
+.nav-buttons {
+  margin-top: 5px;
+}
+
+.nav-buttons button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin: 0 5px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.nav-buttons button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.multi-draw-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.prize-summary {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f0f0f0;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.summary-title {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.rarity-counts {
+  display: flex;
+  justify-content: space-around;
+}
+
+.rarity-count {
+  font-weight: bold;
+  padding: 5px 10px;
+  border-radius: 15px;
+}
+
+.rarity-count.rarity-3 {
+  color: #2196f3;
+}
+
+.rarity-count.rarity-4 {
+  color: #9c27b0;
+}
+
+.rarity-count.rarity-5 {
+  color: #ffc107;
+  text-shadow: 0 0 2px rgba(0,0,0,0.2);
 }
 </style>
