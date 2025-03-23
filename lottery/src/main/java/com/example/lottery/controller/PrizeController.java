@@ -3,10 +3,13 @@ package com.example.lottery.controller;
 import com.example.lottery.entity.Prize;
 import com.example.lottery.service.PrizeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/prizes")
@@ -37,7 +40,26 @@ public class PrizeController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deletePrize(@PathVariable Long id) {
-        prizeService.deletePrize(id);
-        return ResponseEntity.ok().build();
+        try {
+            prizeService.deletePrize(id);
+            
+            // 返回成功消息
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Prize deleted successfully");
+            response.put("status", "success");
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            // 返回具体的错误信息
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", e.getMessage());
+            errorResponse.put("status", "error");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        } catch (Exception e) {
+            // 捕获其他类型的异常
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", "An unexpected error occurred: " + e.getMessage());
+            errorResponse.put("status", "error");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
     }
 }

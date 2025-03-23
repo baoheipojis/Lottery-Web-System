@@ -4,6 +4,8 @@ import com.example.lottery.entity.Prize;
 import com.example.lottery.repository.PrizeRepository;
 import com.example.lottery.service.PrizeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -65,9 +67,21 @@ public class PrizeServiceImpl implements PrizeService {
 
     @Override
     public void deletePrize(Long id) {
-        if (!prizeRepository.existsById(id)) {
-            throw new RuntimeException("Prize not found with id: " + id);
+        if (id == null) {
+            throw new IllegalArgumentException("Prize ID cannot be null");
         }
-        prizeRepository.deleteById(id);
+        
+        try {
+            if (!prizeRepository.existsById(id)) {
+                throw new RuntimeException("Prize not found with id: " + id);
+            }
+            prizeRepository.deleteById(id);
+        } catch (EmptyResultDataAccessException e) {
+            throw new RuntimeException("Prize not found with id: " + id);
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Database error occurred while deleting prize: " + e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete prize: " + e.getMessage());
+        }
     }
 }
