@@ -21,6 +21,7 @@ public class PlanPointsController {
         this.lotteryState = lotteryState;
     }
 
+//    GetMapping的意思是处理GET请求
     @GetMapping
     public Map<String, Object> getPlanPoints() {
         int currentPoints = lotteryState.getCurrentPlanPoints();

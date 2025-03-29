@@ -2,11 +2,22 @@
   <div>
     <h2>Current Plan Points: {{ currentPlanPoints }}</h2>
     <h3>Plan Points Records</h3>
-    <ul>
-      <li v-for="record in planPointsRecords" :key="record.id">
-        Changed by {{ record.amountChange }} at {{ record.timestamp }}
-      </li>
-    </ul>
+    <table>
+      <thead>
+        <tr>
+          <th>Amount Change</th>
+          <th>Timestamp</th>
+          <th>Balance After Operation</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="record in planPointsRecords" :key="record.id">
+          <td>{{ record.amountChange }}</td>
+          <td>{{ record.timestamp }}</td>
+          <td>{{ record.balanceAfterOperation }}</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
 
@@ -44,16 +55,23 @@ h2, h3 {
   color: #333;
 }
 
-ul {
-  list-style-type: none;
-  padding: 0;
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
 }
 
-li {
-  background-color: #fff;
-  margin: 10px 0;
-  padding: 10px;
+th, td {
   border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background-color: #f4f4f4;
+}
+
+tr:nth-child(even) {
+  background-color: #f9f9f9;
 }
 </style>
