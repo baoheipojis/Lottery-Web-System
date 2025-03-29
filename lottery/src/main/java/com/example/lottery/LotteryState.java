@@ -3,8 +3,11 @@ package com.example.lottery;
 
 import com.example.lottery.entity.LotteryHistory;
 import com.example.lottery.repository.LotteryHistoryRepository;
+import com.example.lottery.repository.PlanPointsRecordRepository;
+import com.example.lottery.entity.PlanPointsRecord;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 public class LotteryState {
     private int totalDraws;
@@ -18,9 +21,11 @@ public class LotteryState {
     }
 
     private final LotteryHistoryRepository lotteryHistoryRepository;
+    private final PlanPointsRecordRepository planPointsRecordRepository;
 
-    public LotteryState(LotteryHistoryRepository lotteryHistoryRepository) {
+    public LotteryState(LotteryHistoryRepository lotteryHistoryRepository, PlanPointsRecordRepository planPointsRecordRepository) {
         this.lotteryHistoryRepository = lotteryHistoryRepository;
+        this.planPointsRecordRepository = planPointsRecordRepository;
         loadHistory();
     }
 
@@ -62,6 +67,29 @@ public class LotteryState {
 
     public void setLastFiveStar(FiveStarType lastFiveStar) {
         this.lastFiveStar = lastFiveStar;
+    }
+
+    public int getCurrentPlanPoints() {
+        return planPointsRecordRepository.sumAllPlanPoints();
+    }
+
+    public void addPlanPoints(int amount) {
+        PlanPointsRecord record = new PlanPointsRecord();
+        record.setAmountChange(amount);
+        record.setTimestamp(LocalDateTime.now());
+        record.setBalanceAfterOperation(getCurrentPlanPoints() + amount);
+        planPointsRecordRepository.save(record);
+    }
+
+    public void consumePlanPoints(int amount) {
+        if (getCurrentPlanPoints() < amount) {
+            throw new IllegalStateException("计划点不足");
+        }
+        PlanPointsRecord record = new PlanPointsRecord();
+        record.setAmountChange(-amount);
+        record.setTimestamp(LocalDateTime.now());
+        record.setBalanceAfterOperation(getCurrentPlanPoints() - amount);
+        planPointsRecordRepository.save(record);
     }
 
     public void loadHistory() {
