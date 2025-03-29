@@ -81,7 +81,7 @@ public class LotteryState {
         planPointsRecordRepository.save(record);
     }
 
-    public void consumePlanPoints(int amount) {
+    public void consumePlanPoints(int amount, String description) {
         if (getCurrentPlanPoints() < amount) {
             throw new IllegalStateException("计划点不足");
         }
@@ -89,7 +89,12 @@ public class LotteryState {
         record.setAmountChange(-amount);
         record.setTimestamp(LocalDateTime.now());
         record.setBalanceAfterOperation(getCurrentPlanPoints() - amount);
+        record.setDescription(description);
         planPointsRecordRepository.save(record);
+    }
+
+    public void consumePlanPoints(int amount) {
+        consumePlanPoints(amount, "通过抽卡消耗（未附加奖品信息）");
     }
 
     public void loadHistory() {

@@ -8,6 +8,7 @@
           <th>Amount Change</th>
           <th>Timestamp</th>
           <th>Balance After Operation</th>
+          <th>Description</th>
         </tr>
       </thead>
       <tbody>
@@ -15,6 +16,7 @@
           <td>{{ record.amountChange }}</td>
           <td>{{ record.timestamp }}</td>
           <td>{{ record.balanceAfterOperation }}</td>
+          <td>{{ record.description }}</td>
         </tr>
       </tbody>
     </table>

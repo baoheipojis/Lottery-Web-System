@@ -17,6 +17,7 @@ public class PlanPointsRecord {
     private int amountChange;
     private LocalDateTime timestamp;
     private int balanceAfterOperation;
+    private String description;
 
     public int getAmountChange() {
         return amountChange;
@@ -40,5 +41,13 @@ public class PlanPointsRecord {
 
     public void setBalanceAfterOperation(int balanceAfterOperation) {
         this.balanceAfterOperation = balanceAfterOperation;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }
