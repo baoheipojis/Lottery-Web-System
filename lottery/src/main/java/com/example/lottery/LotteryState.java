@@ -73,12 +73,17 @@ public class LotteryState {
         return planPointsRecordRepository.sumAllPlanPoints();
     }
 
-    public void addPlanPoints(int amount) {
+    public void addPlanPoints(int amount, String description) {
         PlanPointsRecord record = new PlanPointsRecord();
         record.setAmountChange(amount);
         record.setTimestamp(LocalDateTime.now());
         record.setBalanceAfterOperation(getCurrentPlanPoints() + amount);
+        record.setDescription(description);
         planPointsRecordRepository.save(record);
+    }
+
+    public void addPlanPoints(int amount) {
+        addPlanPoints(amount, "添加计划点");
     }
 
     public void consumePlanPoints(int amount, String description) {
