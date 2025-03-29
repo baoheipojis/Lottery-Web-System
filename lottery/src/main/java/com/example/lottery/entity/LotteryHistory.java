@@ -4,6 +4,7 @@ package com.example.lottery.entity;
 import jakarta.persistence.*;
 
 import java.time.ZonedDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "lottery_history")
@@ -33,6 +34,12 @@ public class LotteryHistory {
     @Transient
     public boolean isLimited() {
         return this.rarity == 5 && "LIMITED".equalsIgnoreCase(this.fiveStarType);
+    }
+
+    // 确保这个方法使用的是正确的时区
+    public void setDrawTimeNow() {
+        // 使用系统默认时区（已在应用启动时设置为亚洲/上海）
+        this.drawTime = ZonedDateTime.now();
     }
 
     // Getters and setters

@@ -1,7 +1,10 @@
 <template>
   <div>
-    <h2>Current Plan Points: {{ currentPlanPoints }}</h2>
-    <h3>Plan Points Records</h3>
+    <h1>Plan Points</h1>
+    <div class="summary-card">
+      <h2>Current Plan Points: <span class="plan-points-value">{{ currentPlanPoints }}</span></h2>
+    </div>
+    
     <table>
       <thead>
         <tr>
@@ -12,11 +15,13 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="record in planPointsRecords" :key="record.id">
+        <tr v-for="record in planPointsRecords" :key="record.id" 
+            :class="{'positive-change': record.amountChange > 0, 
+                    'negative-change': record.amountChange < 0}">
           <td>{{ record.amountChange }}</td>
-          <td>{{ record.timestamp }}</td>
+          <td>{{ formatTimestamp(record.timestamp) }}</td>
           <td>{{ record.balanceAfterOperation }}</td>
-          <td>{{ record.description }}</td>
+          <td>{{ record.description || '无说明' }}</td>
         </tr>
       </tbody>
     </table>
@@ -32,6 +37,16 @@ export default {
       planPointsRecords: []
     };
   },
+  methods: {
+    formatTimestamp(timestamp) {
+      if (!timestamp) return '未知时间';
+      // 使用中国时区显示时间
+      return new Date(timestamp).toLocaleString('zh-CN', {
+        timeZone: 'Asia/Shanghai',
+        hour12: false
+      });
+    }
+  },
   async created() {
     try {
       const response = await fetch('/api/plan-points');
@@ -45,35 +60,66 @@ export default {
 };
 </script>
 
-<style>
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f5f5f5;
+<style scoped>
+h1 {
+  color: #333;
+  text-align: center;
+  margin-bottom: 20px;
 }
 
-h2, h3 {
-  color: #333;
+.summary-card {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 20px;
+  margin: 20px auto;
+  text-align: center;
+  max-width: 400px;
+}
+
+.plan-points-value {
+  color: #4CAF50;
+  font-weight: bold;
+  font-size: 1.2em;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  margin: 20px 0;
-}
-
-th, td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: left;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-radius: 5px;
+  overflow: hidden;
+  margin-top: 20px;
 }
 
 th {
-  background-color: #f4f4f4;
+  background-color: #4CAF50;
+  color: white;
+  padding: 12px;
+  font-weight: bold;
+  text-align: left;
 }
 
-tr:nth-child(even) {
-  background-color: #f9f9f9;
+td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+tbody tr:hover {
+  background-color: #e0e0e0;
+}
+
+.positive-change {
+  color: #2196F3;
+  font-weight: bold;
+}
+
+.negative-change {
+  color: #f44336;
+  font-weight: bold;
 }
 </style>

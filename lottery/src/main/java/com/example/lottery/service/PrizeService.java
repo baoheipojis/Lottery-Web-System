@@ -10,9 +10,6 @@ import com.example.lottery.LotteryState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.List;
 
 @Service
@@ -47,9 +44,8 @@ public class PrizeService {
             }
             // Save draw history
             LotteryHistory history = new LotteryHistory();
-            LocalDateTime now = LocalDateTime.now();
-            ZonedDateTime beijingTime = now.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("Asia/Shanghai"));
-            history.setDrawTime(beijingTime);
+            // 使用LotteryHistory中定义的方法，确保使用正确的时区
+            history.setDrawTimeNow();
             history.setPrizeName(prize.getName());
             history.setRarity(prize.getRarity());
             history.setFiveStarType(prize.getRarity() == 5 ? prize.getFiveStarType() : null);

@@ -18,7 +18,7 @@
             'rarity-yellow': history.rarity === 5
           }"
         >
-          <td>{{ history.drawTime }}</td>
+          <td>{{ formatTimestamp(history.drawTime) }}</td>
           <td>{{ history.prizeName }}</td>
           <td>
             {{ history.rarity === 5
@@ -53,6 +53,14 @@ export default {
         .catch(error => {
           console.error('Error fetching histories:', error);
         });
+    },
+    formatTimestamp(timestamp) {
+      if (!timestamp) return '未知时间';
+      // 使用中国时区显示时间
+      return new Date(timestamp).toLocaleString('zh-CN', {
+        timeZone: 'Asia/Shanghai',
+        hour12: false
+      });
     }
   }
 };
