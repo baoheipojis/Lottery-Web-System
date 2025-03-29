@@ -26,7 +26,7 @@ class DefaultLotteryStrategyTest {
         prizeRepository = Mockito.mock(PrizeRepository.class);
         strategy = new DefaultLotteryStrategy(prizeRepository);
         lotteryHistoryRepository = Mockito.mock(LotteryHistoryRepository.class);
-        state = new LotteryState(lotteryHistoryRepository);
+        state = new LotteryState(lotteryHistoryRepository, null);
 
         // Mock prize data
         List<Prize> threeStarPrizes = List.of(new Prize("三星奖品", 3, null, "三星奖品描述"));

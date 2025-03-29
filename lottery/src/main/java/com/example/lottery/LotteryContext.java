@@ -20,9 +20,8 @@ public class LotteryContext {
     }
 
     public Prize executeDraw(LotteryState state) {
-        if (strategy == null) {
-            throw new IllegalStateException("抽奖策略未设置！");
-        }
-        return strategy.draw(state);
+        Prize prize = strategy.draw(state);
+        state.consumePlanPoints(160, "通过抽卡消耗，奖品: " + prize.getName());
+        return prize;
     }
 }

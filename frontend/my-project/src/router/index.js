@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import HistoryList from '../components/HistoryList.vue';
+import PlanPoints from '../PlanPoints.vue';
 
 const routes = [
     {
@@ -11,6 +12,11 @@ const routes = [
         path: '/prizes',
         name: 'PrizeList',
         component: () => import('../components/PrizeList.vue')
+    },
+    {
+        path: '/plan-points',
+        name: 'PlanPoints',
+        component: PlanPoints
     }
 ];
 
