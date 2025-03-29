@@ -99,17 +99,73 @@
             'rarity-yellow': prize.rarity === 5
           }"
         >
-          <td>{{ prize.name }}</td>
           <td>
-            {{ prize.rarity === 5
-                ? (prize.fiveStarType?.toUpperCase() === 'LIMITED' ? '限定五星' : '普通五星')
-                : (prize.rarity + '星')
-            }}
+            <div v-if="editMode[prize.id]?.name">
+              <input v-model="editData[prize.id].name" class="edit-input" />
+              <button @click="saveField(prize.id, 'name')" class="save-btn">✓</button>
+              <button @click="cancelEdit(prize.id, 'name')" class="cancel-btn">✗</button>
+            </div>
+            <div v-else class="cell-with-edit">
+              {{ prize.name }}
+              <button @click="startEdit(prize, 'name')" class="edit-btn">✎</button>
+            </div>
           </td>
-          <td>{{ prize.description }}</td>
+          
+          <td>
+            <div v-if="editMode[prize.id]?.rarity">
+              <select v-model="editData[prize.id].rarity" class="edit-input">
+                <option value="3">3星</option>
+                <option value="4">4星</option>
+                <option value="5">5星</option>
+              </select>
+              <select 
+                v-if="editData[prize.id].rarity == 5"
+                v-model="editData[prize.id].fiveStarType"
+                class="five-star-type-edit"
+              >
+                <option value="normal">普通</option>
+                <option value="limited">限定</option>
+              </select>
+              <button @click="saveField(prize.id, 'rarity')" class="save-btn">✓</button>
+              <button @click="cancelEdit(prize.id, 'rarity')" class="cancel-btn">✗</button>
+            </div>
+            <div v-else class="cell-with-edit">
+              {{ prize.rarity === 5
+                  ? (prize.fiveStarType?.toUpperCase() === 'LIMITED' ? '限定五星' : '普通五星')
+                  : (prize.rarity + '星')
+              }}
+              <button @click="startEdit(prize, 'rarity')" class="edit-btn">✎</button>
+            </div>
+          </td>
+          
+          <td>
+            <div v-if="editMode[prize.id]?.description">
+              <input v-model="editData[prize.id].description" class="edit-input" />
+              <button @click="saveField(prize.id, 'description')" class="save-btn">✓</button>
+              <button @click="cancelEdit(prize.id, 'description')" class="cancel-btn">✗</button>
+            </div>
+            <div v-else class="cell-with-edit">
+              {{ prize.description }}
+              <button @click="startEdit(prize, 'description')" class="edit-btn">✎</button>
+            </div>
+          </td>
+          
           <td class="center-content" :class="{'repeatable': isRepeatable(prize)}">
-            {{ isRepeatable(prize) ? '是' : '否' }}
+            <div v-if="editMode[prize.id]?.isRepeatable">
+              <input 
+                v-model="editData[prize.id].isRepeatable" 
+                type="checkbox"
+                class="checkbox-center"
+              />
+              <button @click="saveField(prize.id, 'isRepeatable')" class="save-btn">✓</button>
+              <button @click="cancelEdit(prize.id, 'isRepeatable')" class="cancel-btn">✗</button>
+            </div>
+            <div v-else class="cell-with-edit">
+              {{ isRepeatable(prize) ? '是' : '否' }}
+              <button @click="startEdit(prize, 'isRepeatable')" class="edit-btn">✎</button>
+            </div>
           </td>
+          
           <td>
             <button 
               @click="confirmDelete(prize)"
@@ -228,7 +284,9 @@ export default {
       isMultiDraw: false,
       drawnPrizes: [],
       currentDrawIndex: 0,
-      drawCount: 0
+      drawCount: 0,
+      editMode: {},
+      editData: {}
     };
   },
   created() {
@@ -429,6 +487,111 @@ export default {
     
     countRarity(rarity) {
       return this.drawnPrizes.filter(prize => prize.rarity === rarity).length;
+    },
+    
+    async updatePrize(prize) {
+      try {
+        const body = { ...prize, name: prize.newName };
+        const response = await fetch(`/api/prizes/${prize.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        if (!response.ok) {
+          throw new Error('Update failed');
+        }
+        // Handle success
+        prize.name = prize.newName;
+        this.submitMessage = '奖品更新成功！';
+        this.submitStatus = 'success';
+        setTimeout(() => {
+          this.submitMessage = '';
+        }, 3000);
+      } catch (error) {
+        console.error('Error updating prize:', error);
+        this.submitMessage = '更新失败: ' + error.message;
+        this.submitStatus = 'error';
+        setTimeout(() => {
+          this.submitMessage = '';
+        }, 5000);
+      }
+    },
+    startEdit(prize, field) {
+      // Initialize edit data structure for this prize if it doesn't exist
+      if (!this.editData[prize.id]) {
+        this.editData[prize.id] = { ...prize };
+      }
+      
+      // Initialize edit mode structure for this prize if it doesn't exist
+      if (!this.editMode[prize.id]) {
+        this.editMode[prize.id] = {};
+      }
+      
+      // Set the field to edit mode (Vue 3 direct assignment)
+      this.editMode[prize.id][field] = true;
+    },
+    
+    cancelEdit(prizeId, field) {
+      if (this.editMode[prizeId]) {
+        this.editMode[prizeId][field] = false;
+      }
+    },
+    
+    async saveField(prizeId, field) {
+      try {
+        const prize = this.prizes.find(p => p.id === prizeId);
+        if (!prize || !this.editData[prizeId]) return;
+        
+        // Create payload with just the updated field
+        const payload = { ...prize };
+        
+        if (field === 'rarity') {
+          // Handle special case for rarity since it might affect fiveStarType
+          payload.rarity = parseInt(this.editData[prizeId].rarity);
+          if (payload.rarity === 5) {
+            payload.fiveStarType = this.editData[prizeId].fiveStarType;
+          } else {
+            payload.fiveStarType = null;
+          }
+        } else {
+          // For other fields, just copy the edited value
+          payload[field] = this.editData[prizeId][field];
+        }
+        
+        const response = await fetch(`/api/prizes/${prizeId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        if (!response.ok) {
+          throw new Error('Update failed');
+        }
+        
+        const updatedPrize = await response.json();
+        
+        // Update the prize in the local array
+        const index = this.prizes.findIndex(p => p.id === prizeId);
+        if (index !== -1) {
+          this.prizes[index] = updatedPrize;
+        }
+        
+        // Turn off edit mode for this field
+        this.cancelEdit(prizeId, field);
+        
+        this.submitMessage = '奖品更新成功！';
+        this.submitStatus = 'success';
+        setTimeout(() => {
+          this.submitMessage = '';
+        }, 3000);
+      } catch (error) {
+        console.error('Error updating prize:', error);
+        this.submitMessage = '更新失败: ' + error.message;
+        this.submitStatus = 'error';
+        setTimeout(() => {
+          this.submitMessage = '';
+        }, 5000);
+      }
     }
   },
   watch: {
@@ -908,5 +1071,53 @@ h1 {
 .rarity-count.rarity-5 {
   color: #ffc107;
   text-shadow: 0 0 2px rgba(0,0,0,0.2);
+}
+
+.cell-with-edit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.edit-btn {
+  visibility: hidden;
+  background: none;
+  border: none;
+  color: #2196F3;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 2px 5px;
+  margin-left: 5px;
+}
+
+tr:hover .edit-btn {
+  visibility: visible;
+}
+
+.edit-input {
+  width: 80%;
+  padding: 5px;
+  border: 1px solid #2196F3;
+  border-radius: 3px;
+}
+
+.five-star-type-edit {
+  margin-top: 5px;
+  width: 80%;
+}
+
+.save-btn, .cancel-btn {
+  border: none;
+  margin-left: 5px;
+  cursor: pointer;
+  padding: 2px 5px;
+}
+
+.save-btn {
+  color: green;
+}
+
+.cancel-btn {
+  color: red;
 }
 </style>
