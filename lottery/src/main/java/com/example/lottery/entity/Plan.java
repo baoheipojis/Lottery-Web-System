@@ -2,6 +2,10 @@ package com.example.lottery.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "plans")
@@ -27,6 +31,15 @@ public class Plan {
     
     @Column(name = "reward_points", nullable = false)
     private int rewardPoints;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    @JsonBackReference  // Prevents serializing the parent (avoiding circular reference)
+    private Plan parent;
+    
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference  // Allows serializing children
+    private List<Plan> children = new ArrayList<>();
     
     // Getters and setters
     public Long getId() {
@@ -83,5 +96,33 @@ public class Plan {
     
     public void setRewardPoints(int rewardPoints) {
         this.rewardPoints = rewardPoints;
+    }
+    
+    public Plan getParent() {
+        return parent;
+    }
+    
+    public void setParent(Plan parent) {
+        this.parent = parent;
+    }
+    
+    public List<Plan> getChildren() {
+        return children;
+    }
+    
+    public void setChildren(List<Plan> children) {
+        this.children = children;
+    }
+    
+    // Helper method to add a child
+    public void addChild(Plan child) {
+        children.add(child);
+        child.setParent(this);
+    }
+    
+    // Helper method to remove a child
+    public void removeChild(Plan child) {
+        children.remove(child);
+        child.setParent(null);
     }
 }

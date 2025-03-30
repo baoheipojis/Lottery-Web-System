@@ -24,6 +24,11 @@ public class PlanController {
         return planService.getAllPlans();
     }
     
+    @GetMapping("/root")
+    public List<Plan> getAllRootPlans() {
+        return planService.getAllRootPlans();
+    }
+    
     @GetMapping("/{id}")
     public ResponseEntity<Plan> getPlanById(@PathVariable Long id) {
         return planService.getPlanById(id)
@@ -34,6 +39,16 @@ public class PlanController {
     @PostMapping
     public Plan createPlan(@RequestBody Plan plan) {
         return planService.savePlan(plan);
+    }
+    
+    @PostMapping("/{id}/children")
+    public ResponseEntity<Plan> addChildPlan(@PathVariable Long id, @RequestBody Plan childPlan) {
+        try {
+            Plan savedChild = planService.addChildPlan(id, childPlan);
+            return ResponseEntity.ok(savedChild);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
     
     @PutMapping("/{id}")

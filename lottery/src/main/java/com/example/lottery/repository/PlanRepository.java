@@ -11,4 +11,6 @@ public interface PlanRepository extends JpaRepository<Plan, Long> {
     
     @Query("SELECT p FROM Plan p ORDER BY p.completed ASC, p.expectedCompletionTime ASC")
     List<Plan> findAllOrderByCompletedAndExpectedCompletionTime();
+    
+    List<Plan> findByParentIsNullOrderByExpectedCompletionTimeAsc();
 }

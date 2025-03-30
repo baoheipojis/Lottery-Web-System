@@ -20,8 +20,8 @@ const routes = [
     },
     {
         path: '/plans',
-        name: 'PlanList',
-        component: () => import('../components/PlanList.vue')
+        name: 'PlanTree',
+        component: () => import('../components/PlanTree.vue')
     }
 ];
 
