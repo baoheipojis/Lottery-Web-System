@@ -87,6 +87,16 @@ public class PlanController {
         }
     }
     
+    @PostMapping("/{id}/uncomplete")
+    public ResponseEntity<Plan> uncompletePlan(@PathVariable Long id) {
+        try {
+            Plan uncompletedPlan = planService.uncompletePlan(id);
+            return ResponseEntity.ok(uncompletedPlan);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+    
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> deletePlan(@PathVariable Long id) {
         try {

@@ -5,8 +5,8 @@
         <input 
           type="checkbox" 
           :checked="plan.completed" 
-          @change="toggleComplete"
-          :disabled="plan.completed"
+          @click.prevent="handleCheckboxClick"
+          title="点击可切换完成状态"
         />
       </div>
       
@@ -181,8 +181,16 @@ export default {
     }
   },
   methods: {
-    toggleComplete() {
-      if (!this.plan.completed) {
+    handleCheckboxClick() {
+      if (this.plan.completed) {
+        // 如果已完成，显示确认对话框
+        if (confirm('确定要将此计划标记为未完成吗？之前获得的计划点将被扣除。')) {
+          // 用户确认后，发送取消完成的事件
+          this.$emit('uncomplete', this.plan.id);
+        }
+        // 如果用户取消，不做任何操作，复选框保持选中状态
+      } else {
+        // 如果未完成，直接发送完成的事件
         this.$emit('complete', this.plan.id);
       }
     },

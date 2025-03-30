@@ -71,6 +71,34 @@ public class PlanService {
         return planRepository.save(plan);
     }
     
+    /**
+     * 将已完成的计划标记为未完成
+     */
+    @Transactional
+    public Plan uncompletePlan(Long id) {
+        Plan plan = planRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("计划未找到"));
+        
+        if (!plan.isCompleted()) {
+            throw new RuntimeException("计划尚未完成，无需取消完成状态");
+        }
+        
+        // 如果这个计划是重复计划完成后生成的新实例的前身，可能需要考虑删除新实例
+        // 这里为简单起见，只处理当前计划的状态
+        
+        // 设置为未完成状态
+        plan.setCompleted(false);
+        plan.setActualCompletionTime(null);
+        
+        // 扣除之前奖励的计划点
+        int rewardPoints = plan.getRewardPoints();
+        lotteryState.consumePlanPoints(rewardPoints, "取消完成计划【" + plan.getTitle() + "】，扣除之前奖励的计划点");
+        
+        System.out.println("Uncompleting plan: " + plan.getTitle());
+        
+        return planRepository.save(plan);
+    }
+    
     private void createNextRepeatablePlan(Plan completedPlan) {
         try {
             // 如果已经过了结束日期，不再创建新计划

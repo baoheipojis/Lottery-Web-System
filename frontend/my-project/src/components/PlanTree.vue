@@ -133,6 +133,7 @@
           <plan-item 
             :plan="plan" 
             @complete="completePlan" 
+            @uncomplete="uncompletePlan"
             @delete="deletePlan"
             @add-child="showAddChildForm"
             @update="updatePlan"
@@ -321,6 +322,18 @@ export default {
         .catch(error => {
           console.error('Error completing plan:', error);
           this.showMessage('完成计划失败', 'error');
+        });
+    },
+    
+    uncompletePlan(planId) {
+      axios.post(`/api/plans/${planId}/uncomplete`)
+        .then(() => {
+          this.fetchPlans(); // 刷新以获取更新的结构
+          this.showMessage('已撤销计划完成状态', 'info');
+        })
+        .catch(error => {
+          console.error('Error uncompleting plan:', error);
+          this.showMessage('撤销计划完成状态失败', 'error');
         });
     },
     
