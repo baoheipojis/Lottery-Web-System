@@ -59,21 +59,22 @@ public class PlanController {
     }
     
     @PutMapping("/{id}")
-    public ResponseEntity<Plan> updatePlan(@PathVariable Long id, @RequestBody Plan updatedPlan) {
-        return planService.getPlanById(id)
-            .map(plan -> {
-                plan.setTitle(updatedPlan.getTitle());
-                plan.setDescription(updatedPlan.getDescription());
-                plan.setExpectedCompletionTime(updatedPlan.getExpectedCompletionTime());
-                plan.setRewardPoints(updatedPlan.getRewardPoints());
-                // 添加重复计划属性的更新
-                plan.setRepeatable(updatedPlan.isRepeatable());
-                plan.setRepeatType(updatedPlan.getRepeatType());
-                plan.setRepeatInterval(updatedPlan.getRepeatInterval());
-                plan.setRepeatEndDate(updatedPlan.getRepeatEndDate());
-                return ResponseEntity.ok(planService.savePlan(plan));
-            })
-            .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> updatePlan(@PathVariable Long id, @RequestBody Plan updatedPlan) {
+        try {
+            // Set ID from path parameter to ensure we're updating the correct plan
+            updatedPlan.setId(id);
+            
+            // Use service method to handle the update
+            Plan result = planService.updatePlan(updatedPlan);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(
+                Map.of(
+                    "message", "更新计划失败: " + e.getMessage(), 
+                    "status", "error"
+                )
+            );
+        }
     }
     
     @PostMapping("/{id}/complete")

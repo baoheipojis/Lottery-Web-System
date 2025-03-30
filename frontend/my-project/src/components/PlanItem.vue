@@ -13,24 +13,82 @@
       <div class="plan-details" @click="toggleExpanded">
         <div class="plan-header">
           <div class="plan-title">
-            {{ plan.title }}
-            <span v-if="hasChildren" class="children-indicator" :class="{ 'expanded': isExpanded }">
-              {{ isExpanded ? '▼' : '▶' }}
-            </span>
-            <span v-if="plan.repeatable" class="repeat-badge" :title="repeatDescription">⟳</span>
+            <!-- 编辑模式标题 -->
+            <div v-if="isEditing && editField === 'title'" class="edit-field">
+              <input v-model="editedPlan.title" class="edit-input" @click.stop />
+              <div class="edit-controls">
+                <button @click.stop="saveEdit" class="save-btn">✓</button>
+                <button @click.stop="cancelEdit" class="cancel-btn">✗</button>
+              </div>
+            </div>
+            <div v-else class="title-container">
+              {{ plan.title }}
+              <span v-if="hasChildren" class="children-indicator" :class="{ 'expanded': isExpanded }">
+                {{ isExpanded ? '▼' : '▶' }}
+              </span>
+              <span v-if="plan.repeatable" class="repeat-badge" :title="repeatDescription">⟳</span>
+              <button v-if="!plan.completed" @click.stop="startEdit('title')" class="edit-btn">✎</button>
+            </div>
           </div>
           <div class="plan-due-date">
-            {{ formatDateTime(plan.expectedCompletionTime) }}
+            <!-- 编辑模式日期 -->
+            <div v-if="isEditing && editField === 'date'" class="edit-field">
+              <input 
+                v-model="editedPlan.expectedCompletionTime" 
+                type="datetime-local" 
+                class="edit-input" 
+                @click.stop
+              />
+              <div class="edit-controls">
+                <button @click.stop="saveEdit" class="save-btn">✓</button>
+                <button @click.stop="cancelEdit" class="cancel-btn">✗</button>
+              </div>
+            </div>
+            <div v-else class="date-container">
+              {{ formatDateTime(plan.expectedCompletionTime) }}
+              <button v-if="!plan.completed" @click.stop="startEdit('date')" class="edit-btn">✎</button>
+            </div>
           </div>
         </div>
         
         <div v-if="isExpanded" class="plan-info">
-          <div class="plan-description">
-            {{ plan.description || '无描述' }}
+          <!-- 编辑模式描述 -->
+          <div v-if="isEditing && editField === 'description'" class="edit-field">
+            <textarea v-model="editedPlan.description" class="edit-textarea" @click.stop></textarea>
+            <div class="edit-controls">
+              <button @click.stop="saveEdit" class="save-btn">✓</button>
+              <button @click.stop="cancelEdit" class="cancel-btn">✗</button>
+            </div>
           </div>
-          <div class="plan-rewards">
-            奖励: {{ plan.rewardPoints }} 计划点
+          <div v-else class="description-container">
+            <div class="plan-description">
+              {{ plan.description || '无描述' }}
+              <button v-if="!plan.completed" @click.stop="startEdit('description')" class="edit-btn">✎</button>
+            </div>
           </div>
+          
+          <!-- 编辑模式计划点 -->
+          <div v-if="isEditing && editField === 'points'" class="edit-field">
+            <input 
+              v-model.number="editedPlan.rewardPoints" 
+              type="number" 
+              min="1" 
+              class="edit-input" 
+              @click.stop
+            />
+            <div class="edit-controls">
+              <button @click.stop="saveEdit" class="save-btn">✓</button>
+              <button @click.stop="cancelEdit" class="cancel-btn">✗</button>
+            </div>
+          </div>
+          <div v-else class="points-container">
+            <div class="plan-rewards">
+              奖励: {{ plan.rewardPoints }} 计划点
+              <button v-if="!plan.completed" @click.stop="startEdit('points')" class="edit-btn">✎</button>
+            </div>
+          </div>
+          
+          <!-- 其他不可编辑信息 -->
           <div v-if="plan.completed" class="completion-time">
             完成于: {{ formatDateTime(plan.actualCompletionTime) }}
           </div>
@@ -69,6 +127,7 @@
           @complete="$emit('complete', $event)"
           @delete="$emit('delete', $event)"
           @add-child="$emit('add-child', $event)"
+          @update="$emit('update', $event)"
         />
       </li>
     </ul>
@@ -86,7 +145,10 @@ export default {
   },
   data() {
     return {
-      isExpanded: false
+      isExpanded: false,
+      isEditing: false,
+      editField: null,
+      editedPlan: {}
     };
   },
   computed: {
@@ -125,7 +187,9 @@ export default {
       }
     },
     toggleExpanded() {
-      this.isExpanded = !this.isExpanded;
+      if (!this.isEditing) {
+        this.isExpanded = !this.isExpanded;
+      }
     },
     formatDateTime(dateTime) {
       if (!dateTime) return '未设置';
@@ -137,6 +201,55 @@ export default {
         hour: '2-digit',
         minute: '2-digit'
       });
+    },
+    
+    // 编辑相关方法
+    startEdit(field) {
+      // 创建计划副本用于编辑
+      this.editedPlan = { ...this.plan };
+      
+      // 格式化日期时间以适应 input 类型
+      if (field === 'date' && this.editedPlan.expectedCompletionTime) {
+        const date = new Date(this.editedPlan.expectedCompletionTime);
+        this.editedPlan.expectedCompletionTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+          .toISOString()
+          .slice(0, 16);
+      }
+      
+      this.editField = field;
+      this.isEditing = true;
+    },
+    
+    saveEdit() {
+      // 创建要更新的数据对象
+      const updatedData = { id: this.plan.id };
+      
+      switch (this.editField) {
+        case 'title':
+          updatedData.title = this.editedPlan.title;
+          break;
+        case 'description':
+          updatedData.description = this.editedPlan.description;
+          break;
+        case 'date':
+          updatedData.expectedCompletionTime = this.editedPlan.expectedCompletionTime;
+          break;
+        case 'points':
+          updatedData.rewardPoints = this.editedPlan.rewardPoints;
+          break;
+      }
+      
+      // 发送更新事件到父组件
+      this.$emit('update', updatedData);
+      
+      // 重置编辑状态
+      this.isEditing = false;
+      this.editField = null;
+    },
+    
+    cancelEdit() {
+      this.isEditing = false;
+      this.editField = null;
     }
   }
 };
@@ -294,5 +407,70 @@ export default {
   margin-top: 5px;
   color: #4CAF50;
   font-size: 12px;
+}
+
+/* 编辑相关样式 */
+.edit-btn {
+  visibility: hidden;
+  background: none;
+  border: none;
+  color: #2196F3;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 5px;
+  margin-left: 5px;
+}
+
+.plan-title:hover .edit-btn,
+.plan-description:hover .edit-btn,
+.plan-due-date:hover .edit-btn,
+.plan-rewards:hover .edit-btn {
+  visibility: visible;
+}
+
+.edit-field {
+  display: flex;
+  align-items: center;
+  margin: 2px 0;
+}
+
+.edit-input, .edit-textarea {
+  flex: 1;
+  padding: 6px;
+  border: 1px solid #2196F3;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.edit-textarea {
+  min-height: 60px;
+  resize: vertical;
+}
+
+.edit-controls {
+  display: flex;
+  margin-left: 8px;
+}
+
+.save-btn, .cancel-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0 4px;
+}
+
+.save-btn {
+  color: #4CAF50;
+}
+
+.cancel-btn {
+  color: #f44336;
+}
+
+.title-container, .date-container, .description-container, .points-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 </style>

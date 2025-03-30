@@ -162,4 +162,54 @@ public class PlanService {
     public void deletePlan(Long id) {
         planRepository.deleteById(id);
     }
+    
+    /**
+     * Updates an existing plan with new data while preserving relationships and children
+     */
+    @Transactional
+    public Plan updatePlan(Plan updatedPlan) {
+        // Fetch the existing plan to ensure it exists and get the full entity with relationships
+        Plan existingPlan = planRepository.findById(updatedPlan.getId())
+            .orElseThrow(() -> new RuntimeException("计划不存在，ID: " + updatedPlan.getId()));
+        
+        // Update basic properties - 添加 null 检查，仅当有值时才更新
+        if (updatedPlan.getTitle() != null) {
+            existingPlan.setTitle(updatedPlan.getTitle());
+        }
+        
+        // 添加对描述的 null 检查，这是问题所在
+        if (updatedPlan.getDescription() != null) {
+            existingPlan.setDescription(updatedPlan.getDescription());
+        }
+        
+        // Handle date fields if provided
+        if (updatedPlan.getExpectedCompletionTime() != null) {
+            existingPlan.setExpectedCompletionTime(updatedPlan.getExpectedCompletionTime());
+        }
+        
+        // Update reward points if valid value provided
+        if (updatedPlan.getRewardPoints() > 0) {
+            existingPlan.setRewardPoints(updatedPlan.getRewardPoints());
+        }
+        
+        // 只在明确设置了重复属性时更新
+        if (updatedPlan.isRepeatable()) {
+            existingPlan.setRepeatable(true);
+            if (updatedPlan.getRepeatType() != null) {
+                existingPlan.setRepeatType(updatedPlan.getRepeatType());
+            }
+            if (updatedPlan.getRepeatInterval() != null) {
+                existingPlan.setRepeatInterval(updatedPlan.getRepeatInterval());
+            }
+            existingPlan.setRepeatEndDate(updatedPlan.getRepeatEndDate());
+        } else if (updatedPlan.isRepeatable() == false) { // 明确设置为不重复
+            existingPlan.setRepeatable(false);
+            existingPlan.setRepeatType(null);
+            existingPlan.setRepeatInterval(null);
+            existingPlan.setRepeatEndDate(null);
+        }
+        
+        // Save and return updated plan
+        return planRepository.save(existingPlan);
+    }
 }

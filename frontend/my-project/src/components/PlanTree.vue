@@ -111,6 +111,7 @@
             @complete="completePlan" 
             @delete="deletePlan"
             @add-child="showAddChildForm"
+            @update="updatePlan"
           />
         </template>
       </ul>
@@ -351,6 +352,40 @@ export default {
       setTimeout(() => {
         this.message = '';
       }, 3000);
+    },
+    
+    updatePlan(planData) {
+      // 使用 API 更新计划
+      axios.put(`/api/plans/${planData.id}`, planData)
+        .then(response => {
+          // 找到并更新本地计划数据
+          this.updatePlanInTree(this.plans, response.data);
+          this.showMessage('计划更新成功', 'success');
+        })
+        .catch(error => {
+          console.error('Error updating plan:', error);
+          this.showMessage('更新计划失败: ' + (error.response?.data?.message || '未知错误'), 'error');
+        });
+    },
+    
+    // 递归更新树中的计划节点
+    updatePlanInTree(plans, updatedPlan) {
+      for (let i = 0; i < plans.length; i++) {
+        if (plans[i].id === updatedPlan.id) {
+          // 保留 children 引用，因为后端返回的数据可能没有包含完整的子计划
+          const children = plans[i].children;
+          plans[i] = { ...updatedPlan, children: children || updatedPlan.children || [] };
+          return true;
+        }
+        
+        // 递归检查子计划
+        if (plans[i].children && plans[i].children.length > 0) {
+          if (this.updatePlanInTree(plans[i].children, updatedPlan)) {
+            return true;
+          }
+        }
+      }
+      return false;
     }
   }
 };

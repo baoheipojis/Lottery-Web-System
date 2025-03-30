@@ -48,13 +48,60 @@
         </thead>
         <tbody>
           <tr v-for="plan in activePlans" :key="plan.id">
-            <td>{{ plan.title }}</td>
-            <td>{{ plan.description }}</td>
-            <td>{{ formatDateTime(plan.expectedCompletionTime) }}</td>
-            <td>{{ plan.rewardPoints }}</td>
             <td>
-              <button @click="completePlan(plan.id)" class="complete-btn">完成</button>
-              <button @click="deletePlan(plan.id)" class="delete-btn">删除</button>
+              <div v-if="editMode[plan.id]?.title">
+                <input v-model="editData[plan.id].title" class="edit-input" />
+              </div>
+              <div v-else class="cell-with-edit">
+                {{ plan.title }}
+                <button @click="startEdit(plan, 'title')" class="edit-btn">✎</button>
+              </div>
+            </td>
+            <td>
+              <div v-if="editMode[plan.id]?.description">
+                <textarea v-model="editData[plan.id].description" class="edit-textarea"></textarea>
+              </div>
+              <div v-else class="cell-with-edit">
+                {{ plan.description }}
+                <button @click="startEdit(plan, 'description')" class="edit-btn">✎</button>
+              </div>
+            </td>
+            <td>
+              <div v-if="editMode[plan.id]?.expectedCompletionTime">
+                <input 
+                  v-model="editData[plan.id].expectedCompletionTime" 
+                  type="datetime-local" 
+                  class="edit-input" 
+                />
+              </div>
+              <div v-else class="cell-with-edit">
+                {{ formatDateTime(plan.expectedCompletionTime) }}
+                <button @click="startEdit(plan, 'expectedCompletionTime')" class="edit-btn">✎</button>
+              </div>
+            </td>
+            <td>
+              <div v-if="editMode[plan.id]?.rewardPoints">
+                <input 
+                  v-model.number="editData[plan.id].rewardPoints" 
+                  type="number" 
+                  min="1"
+                  class="edit-input" 
+                />
+              </div>
+              <div v-else class="cell-with-edit">
+                {{ plan.rewardPoints }}
+                <button @click="startEdit(plan, 'rewardPoints')" class="edit-btn">✎</button>
+              </div>
+            </td>
+            <td>
+              <div v-if="isEditing(plan.id)">
+                <button @click="saveChanges(plan.id)" class="save-btn">保存</button>
+                <button @click="cancelEdit(plan.id)" class="cancel-btn">取消</button>
+              </div>
+              <div v-else>
+                <button @click="completePlan(plan.id)" class="complete-btn">完成</button>
+                <button @click="deletePlan(plan.id)" class="delete-btn">删除</button>
+              </div>
             </td>
           </tr>
           <tr v-if="activePlans.length === 0">
@@ -107,7 +154,9 @@ export default {
         rewardPoints: 100
       },
       message: '',
-      messageType: 'info'
+      messageType: 'info',
+      editMode: {}, // 跟踪每个计划的编辑状态
+      editData: {}  // 存储编辑中的数据
     };
   },
   computed: {
@@ -210,6 +259,66 @@ export default {
       setTimeout(() => {
         this.message = '';
       }, 3000);
+    },
+    
+    // 开始编辑
+    startEdit(plan, field) {
+      // 确保 editData 中有这个计划的副本
+      if (!this.editData[plan.id]) {
+        // 对于时间字段，需要特殊处理格式
+        let expectedCompletionTime = plan.expectedCompletionTime;
+        if (expectedCompletionTime) {
+          // 转换为 yyyy-MM-ddThh:mm 格式以适应 datetime-local 输入
+          const date = new Date(expectedCompletionTime);
+          expectedCompletionTime = date.toISOString().slice(0, 16);
+        }
+        
+        this.editData[plan.id] = { 
+          ...plan,
+          expectedCompletionTime
+        };
+      }
+      
+      // 确保 editMode 中有这个计划的跟踪状态
+      if (!this.editMode[plan.id]) {
+        this.editMode[plan.id] = {};
+      }
+      
+      // 设置指定字段为编辑模式
+      this.editMode[plan.id][field] = true;
+    },
+    
+    // 取消编辑
+    cancelEdit(planId) {
+      this.editMode[planId] = {};
+    },
+    
+    // 检查计划是否处于编辑模式
+    isEditing(planId) {
+      return this.editMode[planId] && Object.values(this.editMode[planId]).some(value => value);
+    },
+    
+    // 保存更改
+    saveChanges(planId) {
+      const updatedPlan = { ...this.editData[planId] };
+      
+      axios.put(`/api/plans/${planId}`, updatedPlan)
+        .then(response => {
+          // 更新本地数据
+          const index = this.plans.findIndex(p => p.id === planId);
+          if (index !== -1) {
+            this.plans[index] = response.data;
+          }
+          
+          // 重置编辑状态
+          this.cancelEdit(planId);
+          
+          this.showMessage('计划更新成功', 'success');
+        })
+        .catch(error => {
+          console.error('Error updating plan:', error);
+          this.showMessage('更新计划失败', 'error');
+        });
     }
   }
 };
@@ -370,5 +479,70 @@ tbody tr:hover {
   text-align: center;
   color: #777;
   font-style: italic;
+}
+
+/* 编辑相关样式 */
+.cell-with-edit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.edit-btn {
+  visibility: hidden;
+  background: none;
+  border: none;
+  color: #2196F3;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 2px 5px;
+  margin-left: 5px;
+}
+
+tr:hover .edit-btn {
+  visibility: visible;
+}
+
+.edit-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #2196F3;
+  border-radius: 4px;
+}
+
+.edit-textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #2196F3;
+  border-radius: 4px;
+  min-height: 60px;
+  resize: vertical;
+}
+
+.save-btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+.cancel-btn {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.save-btn:hover {
+  background-color: #45a049;
+}
+
+.cancel-btn:hover {
+  background-color: #d32f2f;
 }
 </style>
