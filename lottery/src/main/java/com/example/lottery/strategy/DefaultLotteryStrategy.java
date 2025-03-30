@@ -29,19 +29,16 @@ public class DefaultLotteryStrategy implements LotteryStrategy {
         state.incrementSinceLastFourStar();
         state.incrementSinceLastFiveStar();
 
- 
         double fourStarProb = (state.getSinceLastFourStar() >= FOUR_STAR_GUARANTEE) ? 0.561 : BASE_FOUR_STAR_PROB;
         double fiveStarProb = (state.getSinceLastFiveStar() >= FIVE_STAR_GUARANTEE)
                 ? BASE_FIVE_STAR_PROB + 0.06 * (state.getSinceLastFiveStar() - FIVE_STAR_GUARANTEE + 1)
                 : BASE_FIVE_STAR_PROB;
 
-//        double roll = ;
-
         if (random.nextDouble() < fiveStarProb) {
             state.resetSinceLastFiveStar();
             state.resetSinceLastFourStar();
             return handleFiveStar(state);
-        } else if (random.nextDouble() <  fourStarProb||state.getSinceLastFourStar() >= 9) {
+        } else if (random.nextDouble() < fourStarProb || state.getSinceLastFourStar() >= 9) {
             state.resetSinceLastFourStar();
             return getRandomPrizeByRarity(4);
         } else {
@@ -66,6 +63,18 @@ public class DefaultLotteryStrategy implements LotteryStrategy {
         if (prizes.isEmpty()) {
             throw new IllegalStateException("No prizes available for the draw.");
         }
+
+        // 优先选择不可重复获取的奖品
+        var nonRepeatablePrizes = prizes.stream()
+                .filter(prize -> !Boolean.TRUE.equals(prize.getIsRepeatable()))
+                .toList();
+
+        // 如果有不可重复的奖品，从中随机选择一个
+        if (!nonRepeatablePrizes.isEmpty()) {
+            return nonRepeatablePrizes.get(random.nextInt(nonRepeatablePrizes.size()));
+        }
+
+        // 如果没有不可重复的奖品，从所有奖品中随机选择
         return prizes.get(random.nextInt(prizes.size()));
     }
 
@@ -74,6 +83,18 @@ public class DefaultLotteryStrategy implements LotteryStrategy {
         if (prizes.isEmpty()) {
             throw new IllegalStateException("No prizes available for the draw.");
         }
+
+        // 优先选择不可重复获取的奖品
+        var nonRepeatablePrizes = prizes.stream()
+                .filter(prize -> !Boolean.TRUE.equals(prize.getIsRepeatable()))
+                .toList();
+
+        // 如果有不可重复的奖品，从中随机选择一个
+        if (!nonRepeatablePrizes.isEmpty()) {
+            return nonRepeatablePrizes.get(random.nextInt(nonRepeatablePrizes.size()));
+        }
+
+        // 如果没有不可重复的奖品，从所有奖品中随机选择
         return prizes.get(random.nextInt(prizes.size()));
     }
 }

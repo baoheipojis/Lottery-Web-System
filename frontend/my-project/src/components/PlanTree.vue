@@ -23,6 +23,12 @@
       <div class="form-group">
         <label>预计完成时间</label>
         <input v-model="newPlan.expectedCompletionTime" type="datetime-local" required />
+        <div class="time-buttons">
+          <button type="button" @click="setTimeTodayEnd" class="time-btn">今天结束(23:59)</button>
+          <button type="button" @click="setTimeTomorrowEnd" class="time-btn">明天结束(23:59)</button>
+          <button type="button" @click="setTimeWeekendEnd" class="time-btn">本周末(周日23:59)</button>
+          <button type="button" @click="setTimeMonthEnd" class="time-btn">本月末(23:59)</button>
+        </div>
       </div>
       
       <div class="form-group">
@@ -78,6 +84,24 @@
     
     <!-- Plan tree view -->
     <div class="plan-tree-container">
+      <!-- Date filter section -->
+      <div class="date-filter">
+        <div class="filter-label">按日期筛选计划：</div>
+        <div class="date-buttons">
+          <button @click="filterByDate('today')" :class="['date-btn', { active: dateFilter === 'today' }]">今天</button>
+          <button @click="filterByDate('tomorrow')" :class="['date-btn', { active: dateFilter === 'tomorrow' }]">明天</button>
+          <button @click="filterByDate('week')" :class="['date-btn', { active: dateFilter === 'week' }]">本周</button>
+          <button @click="filterByDate('next-week')" :class="['date-btn', { active: dateFilter === 'next-week' }]">下周</button>
+          <button @click="filterByDate('month')" :class="['date-btn', { active: dateFilter === 'month' }]">本月</button>
+          <button @click="filterByDate('next-month')" :class="['date-btn', { active: dateFilter === 'next-month' }]">下月</button>
+          <button @click="filterByDate('all')" :class="['date-btn', { active: dateFilter === 'all' }]">全部</button>
+        </div>
+        <div class="custom-date">
+          <label>自定义日期：</label>
+          <input type="date" v-model="customDate" @change="filterByDate('custom')" />
+        </div>
+      </div>
+      
       <h2>计划列表 <span class="hierarchy-hint">(可展开查看子计划)</span></h2>
       <div class="filter-tabs">
         <button 
@@ -135,6 +159,12 @@
         <div class="form-group">
           <label>预计完成时间</label>
           <input v-model="newChildPlan.expectedCompletionTime" type="datetime-local" />
+          <div class="time-buttons">
+            <button type="button" @click="setChildTimeTodayEnd" class="time-btn">今天结束(23:59)</button>
+            <button type="button" @click="setChildTimeTomorrowEnd" class="time-btn">明天结束(23:59)</button>
+            <button type="button" @click="setChildTimeWeekendEnd" class="time-btn">本周末(23:59)</button>
+            <button type="button" @click="setChildTimeMonthEnd" class="time-btn">本月末(23:59)</button>
+          </div>
         </div>
         
         <div class="form-group">
@@ -188,7 +218,9 @@ export default {
         description: '',
         expectedCompletionTime: '',
         rewardPoints: 50
-      }
+      },
+      dateFilter: 'all',
+      customDate: this.formatDateForInput(new Date())
     };
   },
   computed: {
@@ -203,13 +235,23 @@ export default {
         this.newChildPlan.rewardPoints > 0;
     },
     filteredRootPlans() {
+      let plans = [];
+      
+      // 首先根据完成状态过滤
       if (this.activeTab === 'all') {
-        return this.plans;
+        plans = this.plans;
       } else if (this.activeTab === 'active') {
-        return this.plans.filter(plan => !plan.completed);
+        plans = this.plans.filter(plan => !plan.completed);
       } else { // completed
-        return this.plans.filter(plan => plan.completed);
+        plans = this.plans.filter(plan => plan.completed);
       }
+      
+      // 然后根据日期过滤
+      if (this.dateFilter !== 'all') {
+        plans = plans.filter(plan => this.isPlanInDateRange(plan));
+      }
+      
+      return plans;
     },
     repeatIntervalUnit() {
       switch (this.newPlan.repeatType) {
@@ -222,6 +264,7 @@ export default {
   },
   created() {
     this.fetchPlans();
+    this.setDefaultEndTimeToday(); // 设置默认完成时间为今天23:59
   },
   methods: {
     fetchPlans() {
@@ -304,6 +347,8 @@ export default {
         expectedCompletionTime: '',
         rewardPoints: 50
       };
+      // 默认设置子计划的完成时间为今天23:59
+      this.setChildTimeTodayEnd();
     },
     
     addChildPlan() {
@@ -343,6 +388,7 @@ export default {
         repeatInterval: 1,
         repeatEndDate: ''
       };
+      this.setDefaultEndTimeToday(); // 重置为默认时间
     },
     
     showMessage(message, type = 'info') {
@@ -386,6 +432,178 @@ export default {
         }
       }
       return false;
+    },
+    
+    // 设置默认完成时间为当天23:59
+    setDefaultEndTimeToday() {
+      const today = new Date();
+      today.setHours(23, 59, 0, 0);
+      this.newPlan.expectedCompletionTime = this.formatDateTimeForInput(today);
+    },
+    
+    // 设置完成时间为今天23:59
+    setTimeTodayEnd() {
+      const today = new Date();
+      today.setHours(23, 59, 0, 0);
+      this.newPlan.expectedCompletionTime = this.formatDateTimeForInput(today);
+    },
+    
+    // 设置完成时间为明天23:59
+    setTimeTomorrowEnd() {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(23, 59, 0, 0);
+      this.newPlan.expectedCompletionTime = this.formatDateTimeForInput(tomorrow);
+    },
+    
+    // 设置完成时间为本周末(周日23:59)
+    setTimeWeekendEnd() {
+      const today = new Date();
+      const dayOfWeek = today.getDay(); // 0 是周日，1 是周一，以此类推
+      const daysUntilSunday = dayOfWeek === 0 ? 7 : 7 - dayOfWeek; // 如果今天是周日，那么获取下周日
+      
+      const sunday = new Date();
+      sunday.setDate(today.getDate() + daysUntilSunday);
+      sunday.setHours(23, 59, 0, 0);
+      
+      this.newPlan.expectedCompletionTime = this.formatDateTimeForInput(sunday);
+    },
+    
+    // 设置完成时间为本月末(23:59)
+    setTimeMonthEnd() {
+      const today = new Date();
+      // 获取下个月的第0天，即本月的最后一天
+      const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      lastDayOfMonth.setHours(23, 59, 0, 0);
+      
+      this.newPlan.expectedCompletionTime = this.formatDateTimeForInput(lastDayOfMonth);
+    },
+    
+    // 子计划的时间设置
+    setChildTimeTodayEnd() {
+      const today = new Date();
+      today.setHours(23, 59, 0, 0);
+      this.newChildPlan.expectedCompletionTime = this.formatDateTimeForInput(today);
+    },
+    
+    setChildTimeTomorrowEnd() {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(23, 59, 0, 0);
+      this.newChildPlan.expectedCompletionTime = this.formatDateTimeForInput(tomorrow);
+    },
+    
+    setChildTimeWeekendEnd() {
+      const today = new Date();
+      const dayOfWeek = today.getDay();
+      const daysUntilSunday = dayOfWeek === 0 ? 7 : 7 - dayOfWeek;
+      
+      const sunday = new Date();
+      sunday.setDate(today.getDate() + daysUntilSunday);
+      sunday.setHours(23, 59, 0, 0);
+      
+      this.newChildPlan.expectedCompletionTime = this.formatDateTimeForInput(sunday);
+    },
+    
+    setChildTimeMonthEnd() {
+      const today = new Date();
+      const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      lastDayOfMonth.setHours(23, 59, 0, 0);
+      
+      this.newChildPlan.expectedCompletionTime = this.formatDateTimeForInput(lastDayOfMonth);
+    },
+    
+    // 修正：格式化日期时间为input元素所需的格式，处理时区问题
+    formatDateTimeForInput(date) {
+      // 创建本地时间的ISO字符串并截取需要的部分，避免时区转换
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    },
+    
+    // 格式化日期部分（YYYY-MM-DD）
+    formatDateForInput(date) {
+      return date.toISOString().split('T')[0];
+    },
+    
+    // 日期过滤函数
+    filterByDate(filter) {
+      this.dateFilter = filter;
+    },
+    
+    // 检查计划是否在选定的日期范围内
+    isPlanInDateRange(plan) {
+      if (!plan.expectedCompletionTime) return false;
+      
+      const planDate = new Date(plan.expectedCompletionTime);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      // 计算本周开始和结束时间
+      const currentDayOfWeek = today.getDay(); // 0 是周日，1 是周一，...
+      const firstDayOfWeek = new Date(today);
+      firstDayOfWeek.setDate(today.getDate() - currentDayOfWeek + (currentDayOfWeek === 0 ? -6 : 1)); // 调整为周一开始
+      
+      const lastDayOfWeek = new Date(firstDayOfWeek);
+      lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6); // 周日结束
+      lastDayOfWeek.setHours(23, 59, 59, 999);
+      
+      // 计算下周的开始和结束时间
+      const firstDayOfNextWeek = new Date(lastDayOfWeek);
+      firstDayOfNextWeek.setDate(lastDayOfWeek.getDate() + 1);
+      firstDayOfNextWeek.setHours(0, 0, 0, 0);
+      
+      const lastDayOfNextWeek = new Date(firstDayOfNextWeek);
+      lastDayOfNextWeek.setDate(firstDayOfNextWeek.getDate() + 6);
+      lastDayOfNextWeek.setHours(23, 59, 59, 999);
+      
+      // 计算本月的开始和结束时间
+      const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      lastDayOfMonth.setHours(23, 59, 59, 999);
+      
+      // 计算下月的开始和结束时间
+      const firstDayOfNextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+      const lastDayOfNextMonth = new Date(today.getFullYear(), today.getMonth() + 2, 0);
+      lastDayOfNextMonth.setHours(23, 59, 59, 999);
+      
+      switch(this.dateFilter) {
+        case 'today':
+          return planDate >= today && planDate < tomorrow;
+          
+        case 'tomorrow':
+          const dayAfterTomorrow = new Date(tomorrow);
+          dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1);
+          return planDate >= tomorrow && planDate < dayAfterTomorrow;
+          
+        case 'week':
+          return planDate >= firstDayOfWeek && planDate <= lastDayOfWeek;
+          
+        case 'next-week':
+          return planDate >= firstDayOfNextWeek && planDate <= lastDayOfNextWeek;
+          
+        case 'month':
+          return planDate >= firstDayOfMonth && planDate <= lastDayOfMonth;
+          
+        case 'next-month':
+          return planDate >= firstDayOfNextMonth && planDate <= lastDayOfNextMonth;
+          
+        case 'custom':
+          const customDateObj = new Date(this.customDate);
+          const nextDay = new Date(customDateObj);
+          nextDay.setDate(nextDay.getDate() + 1);
+          return planDate >= customDateObj && planDate < nextDay;
+          
+        default:
+          return true;
+      }
     }
   }
 };
@@ -609,5 +827,78 @@ textarea {
 .interval-unit {
   margin-left: 5px;
   color: #666;
+}
+
+.date-filter {
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.filter-label {
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #555;
+}
+
+.date-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.date-btn {
+  padding: 6px 12px;
+  background-color: #e0e0e0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.date-btn:hover {
+  background-color: #d0d0d0;
+}
+
+.date-btn.active {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.custom-date {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.custom-date input {
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.time-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+.time-btn {
+  padding: 5px 10px;
+  background-color: #e0e0e0;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.time-btn:hover {
+  background-color: #d0d0d0;
 }
 </style>

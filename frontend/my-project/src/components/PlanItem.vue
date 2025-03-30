@@ -208,12 +208,18 @@ export default {
       // 创建计划副本用于编辑
       this.editedPlan = { ...this.plan };
       
-      // 格式化日期时间以适应 input 类型
+      // 格式化日期时间以适应 input 类型，修复时区问题
       if (field === 'date' && this.editedPlan.expectedCompletionTime) {
         const date = new Date(this.editedPlan.expectedCompletionTime);
-        this.editedPlan.expectedCompletionTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
-          .toISOString()
-          .slice(0, 16);
+        
+        // 使用本地时间格式化，避免时区转换问题
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        
+        this.editedPlan.expectedCompletionTime = `${year}-${month}-${day}T${hours}:${minutes}`;
       }
       
       this.editField = field;
