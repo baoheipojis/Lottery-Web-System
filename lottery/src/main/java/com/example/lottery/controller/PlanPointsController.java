@@ -3,6 +3,7 @@ package com.example.lottery.controller;
 import com.example.lottery.LotteryState;
 import com.example.lottery.repository.PlanPointsRecordRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
@@ -21,7 +22,6 @@ public class PlanPointsController {
         this.lotteryState = lotteryState;
     }
 
-//    GetMapping的意思是处理GET请求
     @GetMapping
     public Map<String, Object> getPlanPoints() {
         int currentPoints = lotteryState.getCurrentPlanPoints();
@@ -29,5 +29,23 @@ public class PlanPointsController {
             "currentPlanPoints", currentPoints,
             "planPointsRecords", planPointsRecordRepository.findAll()
         );
+    }
+    
+    // 添加删除所有计划点记录的接口
+    @DeleteMapping("/all")
+    public ResponseEntity<Map<String, String>> deleteAllPlanPointsRecords() {
+        try {
+            long count = planPointsRecordRepository.count();
+            planPointsRecordRepository.deleteAll();
+            return ResponseEntity.ok(Map.of(
+                "message", "成功删除 " + count + " 条计划点记录",
+                "status", "success"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "message", "删除失败: " + e.getMessage(),
+                "status", "error"
+            ));
+        }
     }
 }

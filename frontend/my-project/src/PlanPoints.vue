@@ -5,6 +5,18 @@
       <h2>Current Plan Points: <span class="plan-points-value">{{ currentPlanPoints }}</span></h2>
     </div>
     
+    <!-- 操作按钮区域 -->
+    <div class="actions-bar">
+      <button @click="confirmClearRecords" class="clear-btn" :disabled="planPointsRecords.length === 0">
+        清空计划点记录
+      </button>
+    </div>
+    
+    <!-- 消息提示 -->
+    <div v-if="message" :class="['message', messageType]">
+      {{ message }}
+    </div>
+    
     <table>
       <thead>
         <tr>
@@ -23,6 +35,10 @@
           <td>{{ record.balanceAfterOperation }}</td>
           <td>{{ record.description || '无说明' }}</td>
         </tr>
+        <!-- 无数据提示 -->
+        <tr v-if="planPointsRecords.length === 0">
+          <td colspan="4" class="empty-message">暂无计划点记录</td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -34,7 +50,9 @@ export default {
   data() {
     return {
       currentPlanPoints: 0,
-      planPointsRecords: []
+      planPointsRecords: [],
+      message: '',
+      messageType: 'info'
     };
   },
   methods: {
@@ -45,6 +63,33 @@ export default {
         timeZone: 'Asia/Shanghai',
         hour12: false
       });
+    },
+    
+    confirmClearRecords() {
+      if (confirm('确定要删除所有计划点记录吗？此操作不可恢复！')) {
+        this.clearAllRecords();
+      }
+    },
+    
+    clearAllRecords() {
+      fetch('/api/plan-points/all', { method: 'DELETE' })
+        .then(response => response.json())
+        .then(data => {
+          this.planPointsRecords = [];
+          this.showMessage(data.message || '已清空所有计划点记录', 'success');
+        })
+        .catch(error => {
+          console.error('Error clearing records:', error);
+          this.showMessage('清空记录失败: ' + (error.response?.data?.message || '未知错误'), 'error');
+        });
+    },
+    
+    showMessage(message, type = 'info') {
+      this.message = message;
+      this.messageType = type;
+      setTimeout(() => {
+        this.message = '';
+      }, 3000);
     }
   },
   async created() {
@@ -121,5 +166,63 @@ tbody tr:hover {
 .negative-change {
   color: #f44336;
   font-weight: bold;
+}
+
+.actions-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 15px;
+}
+
+.clear-btn {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.clear-btn:hover {
+  background-color: #d32f2f;
+}
+
+.clear-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.message {
+  margin: 15px 0;
+  padding: 10px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.info {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+.empty-message {
+  text-align: center;
+  padding: 20px;
+  color: #777;
+  font-style: italic;
 }
 </style>

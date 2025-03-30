@@ -1,6 +1,19 @@
 <template>
   <div>
     <h1>Lottery History</h1>
+    
+    <!-- 操作按钮区域 -->
+    <div class="actions-bar">
+      <button @click="confirmClearHistory" class="clear-btn" :disabled="histories.length === 0">
+        清空抽奖记录
+      </button>
+    </div>
+    
+    <!-- 消息提示 -->
+    <div v-if="message" :class="['message', messageType]">
+      {{ message }}
+    </div>
+    
     <table>
       <thead>
         <tr>
@@ -27,6 +40,10 @@
             }}
           </td>
         </tr>
+        <!-- 无数据提示 -->
+        <tr v-if="histories.length === 0">
+          <td colspan="3" class="empty-message">暂无抽奖记录</td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -38,7 +55,9 @@ import axios from 'axios';
 export default {
   data() {
     return {
-      histories: []
+      histories: [],
+      message: '',
+      messageType: 'info'
     };
   },
   created() {
@@ -54,6 +73,7 @@ export default {
           console.error('Error fetching histories:', error);
         });
     },
+    
     formatTimestamp(timestamp) {
       if (!timestamp) return '未知时间';
       // 使用中国时区显示时间
@@ -61,6 +81,32 @@ export default {
         timeZone: 'Asia/Shanghai',
         hour12: false
       });
+    },
+    
+    confirmClearHistory() {
+      if (confirm('确定要删除所有抽奖记录吗？此操作不可恢复！')) {
+        this.clearAllHistory();
+      }
+    },
+    
+    clearAllHistory() {
+      axios.delete('/api/lottery-history/all')
+        .then(response => {
+          this.histories = [];
+          this.showMessage(response.data.message || '已清空所有抽奖记录', 'success');
+        })
+        .catch(error => {
+          console.error('Error clearing history:', error);
+          this.showMessage('清空记录失败: ' + (error.response?.data?.message || '未知错误'), 'error');
+        });
+    },
+    
+    showMessage(message, type = 'info') {
+      this.message = message;
+      this.messageType = type;
+      setTimeout(() => {
+        this.message = '';
+      }, 3000);
     }
   }
 };
@@ -112,5 +158,63 @@ h1 {
   color: #333;
   text-align: center;
   margin-bottom: 20px;
+}
+
+.actions-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 15px;
+}
+
+.clear-btn {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.clear-btn:hover {
+  background-color: #d32f2f;
+}
+
+.clear-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.message {
+  margin: 15px 0;
+  padding: 10px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.info {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+.empty-message {
+  text-align: center;
+  padding: 20px;
+  color: #777;
+  font-style: italic;
 }
 </style>

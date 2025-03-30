@@ -355,7 +355,17 @@ export default {
         })
         .catch(error => {
           console.error('Error adding prize:', error);
-          this.submitMessage = '添加失败: ' + (error.response?.data?.message || '未知错误');
+          let errorMessage = '添加失败';
+          
+          if (error.response && error.response.data) {
+            if (error.response.data.errorType === 'VALIDATION_ERROR') {
+              errorMessage = error.response.data.message || '奖品数据验证失败';
+            } else {
+              errorMessage = error.response.data.message || '未知错误';
+            }
+          }
+          
+          this.submitMessage = errorMessage;
           this.submitStatus = 'error';
         });
     },
@@ -431,7 +441,20 @@ export default {
         })
         .catch(error => {
           console.error('Error drawing prize:', error);
-          this.submitMessage = '抽卡失败: ' + (error.response?.data?.message || '未知错误');
+          let errorMessage = '抽卡失败';
+          
+          if (error.response && error.response.data) {
+            // 处理特定类型的错误
+            if (error.response.data.errorType === 'INSUFFICIENT_POINTS') {
+              errorMessage = error.response.data.message || '计划点数不足，无法抽卡';
+            } else if (error.response.data.errorType === 'NO_PRIZE_AVAILABLE') {
+              errorMessage = error.response.data.message || '抽奖池中没有可用的奖品';
+            } else {
+              errorMessage = error.response.data.message || '抽卡过程中发生错误';
+            }
+          }
+          
+          this.submitMessage = errorMessage;
           this.submitStatus = 'error';
         })
         .finally(() => {
@@ -448,10 +471,34 @@ export default {
       
       try {
         for (let i = 0; i < 10; i++) {
-          const response = await axios.get('/api/prizes/draw');
-          this.drawnPrizes.push(response.data);
+          try {
+            const response = await axios.get('/api/prizes/draw');
+            this.drawnPrizes.push(response.data);
+          } catch (error) {
+            console.error(`Error on draw ${i+1}:`, error);
+            // 处理具体的错误类型
+            let errorMessage = '抽卡失败';
+            
+            if (error.response && error.response.data) {
+              if (error.response.data.errorType === 'INSUFFICIENT_POINTS') {
+                errorMessage = `第${i+1}次抽卡: ${error.response.data.message || '计划点数不足'}`;
+              } else if (error.response.data.errorType === 'NO_PRIZE_AVAILABLE') {
+                errorMessage = `第${i+1}次抽卡: ${error.response.data.message || '抽奖池中没有可用的奖品'}`;
+              } else {
+                errorMessage = `第${i+1}次抽卡: ${error.response.data.message || '抽卡过程中发生错误'}`;
+              }
+            }
+            
+            // 显示错误，但继续尝试其他抽卡
+            this.submitMessage = errorMessage;
+            this.submitStatus = 'error';
+            break; // 中断十连抽
+          }
         }
-        this.showDrawModal = true;
+        
+        if (this.drawnPrizes.length > 0) {
+          this.showDrawModal = true;
+        }
       } catch (error) {
         console.error('Error drawing 10 prizes:', error);
         this.submitMessage = '十连抽失败: ' + (error.response?.data?.message || '未知错误');

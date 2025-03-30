@@ -3,6 +3,7 @@ package com.example.lottery.controller;
 import com.example.lottery.entity.Prize;
 import com.example.lottery.repository.PrizeRepository;
 import com.example.lottery.service.PrizeService;
+import com.example.lottery.LotteryContext; // Add this import
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,13 +33,71 @@ public class PrizeController {
     }
 
     @GetMapping("/draw")
-    public Prize drawPrize() {
-        return prizeService.drawPrize(); // 调用 PrizeService 中的抽奖逻辑
+    public ResponseEntity<?> drawPrize() {
+        try {
+            Prize prize = prizeService.drawPrize();
+            return ResponseEntity.ok(prize);
+        } catch (LotteryContext.InsufficientPlanPointsException e) {
+            // 计划点不足的错误
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", e.getMessage());
+            errorResponse.put("errorType", "INSUFFICIENT_POINTS");
+            errorResponse.put("status", "error");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        } catch (LotteryContext.NoPrizeAvailableException e) {
+            // 奖池为空或没有符合条件的奖品
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", e.getMessage());
+            errorResponse.put("errorType", "NO_PRIZE_AVAILABLE");
+            errorResponse.put("status", "error");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        } catch (Exception e) {
+            // 其他未预期的错误
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", "抽奖过程中发生错误: " + e.getMessage());
+            errorResponse.put("errorType", "UNKNOWN_ERROR");
+            errorResponse.put("status", "error");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
     }
-    
+
     @PostMapping
-    public Prize addPrize(@RequestBody Prize prize) {
-        return prizeService.savePrize(prize);
+    public ResponseEntity<?> addPrize(@RequestBody Prize prize) {
+        try {
+            // 验证必填字段
+            if (prize.getName() == null || prize.getName().trim().isEmpty()) {
+                throw new IllegalArgumentException("奖品名称不能为空");
+            }
+            
+            if (prize.getRarity() < 3 || prize.getRarity() > 5) {
+                throw new IllegalArgumentException("奖品稀有度必须在3-5星之间");
+            }
+            
+            // 如果是5星奖品，验证fiveStarType
+            if (prize.getRarity() == 5 && 
+                (prize.getFiveStarType() == null || 
+                 (!prize.getFiveStarType().equalsIgnoreCase("normal") && 
+                  !prize.getFiveStarType().equalsIgnoreCase("limited")))) {
+                throw new IllegalArgumentException("5星奖品必须指定类型为normal或limited");
+            }
+            
+            Prize savedPrize = prizeService.savePrize(prize);
+            return ResponseEntity.ok(savedPrize);
+        } catch (IllegalArgumentException e) {
+            // 参数验证错误
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", e.getMessage());
+            errorResponse.put("errorType", "VALIDATION_ERROR");
+            errorResponse.put("status", "error");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        } catch (Exception e) {
+            // 其他未预期的错误
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", "添加奖品失败: " + e.getMessage());
+            errorResponse.put("errorType", "UNKNOWN_ERROR");
+            errorResponse.put("status", "error");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
     }
 
     @DeleteMapping("/{id}")
