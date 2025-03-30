@@ -30,6 +30,49 @@
         <input v-model.number="newPlan.rewardPoints" type="number" min="1" required />
       </div>
       
+      <div class="form-group">
+        <label>重复设置</label>
+        <div class="repeat-options">
+          <div class="checkbox-group">
+            <input type="checkbox" id="repeatable" v-model="newPlan.repeatable" />
+            <label for="repeatable">重复计划</label>
+          </div>
+          
+          <div v-if="newPlan.repeatable" class="repeat-settings">
+            <div class="form-group">
+              <label>重复类型</label>
+              <select v-model="newPlan.repeatType" required>
+                <option value="DAILY">每天</option>
+                <option value="WEEKLY">每周</option>
+                <option value="MONTHLY">每月</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label>重复间隔</label>
+              <input 
+                v-model.number="newPlan.repeatInterval" 
+                type="number" 
+                min="1" 
+                placeholder="间隔时间"
+              />
+              <span class="interval-unit">
+                {{ repeatIntervalUnit }}
+              </span>
+            </div>
+            
+            <div class="form-group">
+              <label>截止日期</label>
+              <input 
+                v-model="newPlan.repeatEndDate" 
+                type="datetime-local" 
+                placeholder="可选"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      
       <button @click="addPlan" class="add-btn" :disabled="!isFormValid">添加根计划</button>
     </div>
     
@@ -131,7 +174,11 @@ export default {
         title: '',
         description: '',
         expectedCompletionTime: '',
-        rewardPoints: 100
+        rewardPoints: 100,
+        repeatable: false,
+        repeatType: 'DAILY',
+        repeatInterval: 1,
+        repeatEndDate: ''
       },
       showChildModal: false,
       selectedParent: null,
@@ -162,6 +209,14 @@ export default {
       } else { // completed
         return this.plans.filter(plan => plan.completed);
       }
+    },
+    repeatIntervalUnit() {
+      switch (this.newPlan.repeatType) {
+        case 'DAILY': return '天';
+        case 'WEEKLY': return '周';
+        case 'MONTHLY': return '月';
+        default: return '';
+      }
     }
   },
   created() {
@@ -186,7 +241,19 @@ export default {
     addPlan() {
       if (!this.isFormValid) return;
       
-      axios.post('/api/plans', this.newPlan)
+      // 确保重复相关字段正确传递
+      const planData = { ...this.newPlan };
+      
+      // 如果不是重复计划，将相关字段设为null
+      if (!planData.repeatable) {
+        planData.repeatType = null;
+        planData.repeatInterval = null;
+        planData.repeatEndDate = null;
+      }
+      
+      console.log("Sending plan data:", planData);
+      
+      axios.post('/api/plans', planData)
         .then(response => {
           this.plans.push(response.data);
           this.resetNewPlanForm();
@@ -199,9 +266,12 @@ export default {
     },
     
     completePlan(planId) {
+      // 添加日志以便调试
+      console.log("Completing plan:", planId);
+      
       axios.post(`/api/plans/${planId}/complete`)
         .then(() => {
-          this.fetchPlans(); // Refresh to get updated structure with children
+          this.fetchPlans(); // 刷新以获取更新的结构和新的重复计划
           this.showMessage('计划已完成，奖励计划点已添加', 'success');
         })
         .catch(error => {
@@ -266,7 +336,11 @@ export default {
         title: '',
         description: '',
         expectedCompletionTime: '',
-        rewardPoints: 100
+        rewardPoints: 100,
+        repeatable: false,
+        repeatType: 'DAILY',
+        repeatInterval: 1,
+        repeatEndDate: ''
       };
     },
     
@@ -477,5 +551,28 @@ textarea {
   margin: 0;
   border-left: 2px dashed #4CAF50;
   margin-left: 15px;
+}
+
+.repeat-options {
+  margin-top: 10px;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.repeat-settings {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+}
+
+.interval-unit {
+  margin-left: 5px;
+  color: #666;
 }
 </style>

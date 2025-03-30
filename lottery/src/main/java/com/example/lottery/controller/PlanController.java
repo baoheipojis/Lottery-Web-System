@@ -38,6 +38,13 @@ public class PlanController {
     
     @PostMapping
     public Plan createPlan(@RequestBody Plan plan) {
+        // 确保前端传来的repeatable等属性被正确保存
+        System.out.println("Creating plan: " + plan.getTitle() + ", repeatable: " + plan.isRepeatable());
+        if (plan.isRepeatable()) {
+            System.out.println("Repeat type: " + plan.getRepeatType() + 
+                               ", interval: " + plan.getRepeatInterval() + 
+                               ", end date: " + plan.getRepeatEndDate());
+        }
         return planService.savePlan(plan);
     }
     
@@ -59,6 +66,11 @@ public class PlanController {
                 plan.setDescription(updatedPlan.getDescription());
                 plan.setExpectedCompletionTime(updatedPlan.getExpectedCompletionTime());
                 plan.setRewardPoints(updatedPlan.getRewardPoints());
+                // 添加重复计划属性的更新
+                plan.setRepeatable(updatedPlan.isRepeatable());
+                plan.setRepeatType(updatedPlan.getRepeatType());
+                plan.setRepeatInterval(updatedPlan.getRepeatInterval());
+                plan.setRepeatEndDate(updatedPlan.getRepeatEndDate());
                 return ResponseEntity.ok(planService.savePlan(plan));
             })
             .orElse(ResponseEntity.notFound().build());

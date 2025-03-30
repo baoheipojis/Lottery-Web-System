@@ -41,6 +41,37 @@ public class Plan {
     @JsonManagedReference  // Allows serializing children
     private List<Plan> children = new ArrayList<>();
     
+    // 添加重复相关的字段
+    @Column(name = "is_repeatable", nullable = false)
+    private boolean repeatable = false;
+
+    @Column(name = "repeat_type")
+    @Enumerated(EnumType.STRING)
+    private RepeatType repeatType;
+
+    @Column(name = "repeat_interval")
+    private Integer repeatInterval;
+
+    @Column(name = "repeat_end_date")
+    private LocalDateTime repeatEndDate;
+
+    // 定义重复类型枚举
+    public enum RepeatType {
+        DAILY("每天"),
+        WEEKLY("每周"),
+        MONTHLY("每月");
+        
+        private final String displayName;
+        
+        RepeatType(String displayName) {
+            this.displayName = displayName;
+        }
+        
+        public String getDisplayName() {
+            return displayName;
+        }
+    }
+    
     // Getters and setters
     public Long getId() {
         return id;
@@ -112,6 +143,38 @@ public class Plan {
     
     public void setChildren(List<Plan> children) {
         this.children = children;
+    }
+    
+    public boolean isRepeatable() {
+        return repeatable;
+    }
+
+    public void setRepeatable(boolean repeatable) {
+        this.repeatable = repeatable;
+    }
+
+    public RepeatType getRepeatType() {
+        return repeatType;
+    }
+
+    public void setRepeatType(RepeatType repeatType) {
+        this.repeatType = repeatType;
+    }
+
+    public Integer getRepeatInterval() {
+        return repeatInterval;
+    }
+
+    public void setRepeatInterval(Integer repeatInterval) {
+        this.repeatInterval = repeatInterval;
+    }
+
+    public LocalDateTime getRepeatEndDate() {
+        return repeatEndDate;
+    }
+
+    public void setRepeatEndDate(LocalDateTime repeatEndDate) {
+        this.repeatEndDate = repeatEndDate;
     }
     
     // Helper method to add a child

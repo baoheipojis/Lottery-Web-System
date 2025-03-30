@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="plan-item" :class="{ 'completed': plan.completed }">
+    <div class="plan-item" :class="{ 'completed': plan.completed, 'repeatable': plan.repeatable }">
       <div class="plan-checkbox-container">
         <input 
           type="checkbox" 
@@ -17,6 +17,7 @@
             <span v-if="hasChildren" class="children-indicator" :class="{ 'expanded': isExpanded }">
               {{ isExpanded ? '▼' : '▶' }}
             </span>
+            <span v-if="plan.repeatable" class="repeat-badge" :title="repeatDescription">⟳</span>
           </div>
           <div class="plan-due-date">
             {{ formatDateTime(plan.expectedCompletionTime) }}
@@ -35,6 +36,9 @@
           </div>
           <div v-if="hasChildren" class="children-count">
             子计划数量: {{ plan.children.length }}
+          </div>
+          <div v-if="plan.repeatable" class="plan-repeat-info">
+            重复: {{ repeatDescription }}
           </div>
         </div>
       </div>
@@ -88,6 +92,30 @@ export default {
   computed: {
     hasChildren() {
       return this.plan.children && this.plan.children.length > 0;
+    },
+    repeatDescription() {
+      if (!this.plan.repeatable) return '';
+      
+      let desc = '';
+      switch (this.plan.repeatType) {
+        case 'DAILY':
+          desc = `每${this.plan.repeatInterval || 1}天`;
+          break;
+        case 'WEEKLY':
+          desc = `每${this.plan.repeatInterval || 1}周`;
+          break;
+        case 'MONTHLY':
+          desc = `每${this.plan.repeatInterval || 1}月`;
+          break;
+        default:
+          desc = '重复';
+      }
+      
+      if (this.plan.repeatEndDate) {
+        desc += ` (截止至${this.formatDateTime(this.plan.repeatEndDate)})`;
+      }
+      
+      return desc;
     }
   },
   methods: {
@@ -135,6 +163,10 @@ export default {
   background-color: #f0f0f0;
   color: #757575;
   text-decoration: line-through;
+}
+
+.plan-item.repeatable {
+  border-left-color: #2196F3;
 }
 
 .plan-checkbox-container {
@@ -186,6 +218,12 @@ export default {
 .completion-time {
   color: #4CAF50;
   margin-top: 5px;
+}
+
+.plan-repeat-info {
+  margin-top: 5px;
+  color: #2196F3;
+  font-size: 14px;
 }
 
 .plan-actions {
@@ -242,6 +280,14 @@ export default {
 
 .children-indicator.expanded {
   transform: rotate(0deg);
+}
+
+.repeat-badge {
+  display: inline-block;
+  margin-left: 5px;
+  color: #2196F3;
+  font-size: 16px;
+  cursor: help;
 }
 
 .children-count {
