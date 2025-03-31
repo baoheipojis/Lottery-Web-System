@@ -236,23 +236,7 @@ export default {
         this.newChildPlan.rewardPoints > 0;
     },
     filteredRootPlans() {
-      let plans = [];
-      
-      // 首先根据完成状态过滤
-      if (this.activeTab === 'all') {
-        plans = this.plans;
-      } else if (this.activeTab === 'active') {
-        plans = this.plans.filter(plan => !plan.completed);
-      } else { // completed
-        plans = this.plans.filter(plan => plan.completed);
-      }
-      
-      // 然后根据日期过滤
-      if (this.dateFilter !== 'all') {
-        plans = plans.filter(plan => this.isPlanInDateRange(plan));
-      }
-      
-      return plans;
+      return this.filterPlansRecursively(this.plans);
     },
     repeatIntervalUnit() {
       switch (this.newPlan.repeatType) {
@@ -587,20 +571,23 @@ export default {
       const lastDayOfNextMonth = new Date(today.getFullYear(), today.getMonth() + 2, 0);
       lastDayOfNextMonth.setHours(23, 59, 59, 999);
       
-      switch(this.dateFilter) {
+      switch (this.dateFilter) {
         case 'today':
           return planDate >= today && planDate < tomorrow;
           
-        case 'tomorrow':
+        case 'tomorrow': {
           const dayAfterTomorrow = new Date(tomorrow);
           dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1);
           return planDate >= tomorrow && planDate < dayAfterTomorrow;
+        }
           
-        case 'week':
+        case 'week': {
           return planDate >= firstDayOfWeek && planDate <= lastDayOfWeek;
+        }
           
-        case 'next-week':
+        case 'next-week': {
           return planDate >= firstDayOfNextWeek && planDate <= lastDayOfNextWeek;
+        }
           
         case 'month':
           return planDate >= firstDayOfMonth && planDate <= lastDayOfMonth;
@@ -608,15 +595,36 @@ export default {
         case 'next-month':
           return planDate >= firstDayOfNextMonth && planDate <= lastDayOfNextMonth;
           
-        case 'custom':
+        case 'custom': {
           const customDateObj = new Date(this.customDate);
           const nextDay = new Date(customDateObj);
           nextDay.setDate(nextDay.getDate() + 1);
           return planDate >= customDateObj && planDate < nextDay;
+        }
           
         default:
           return true;
       }
+    },
+    
+    filterPlansRecursively(plans) {
+      if (!plans) return [];
+      const result = [];
+
+      for (const plan of plans) {
+        const filteredChildren = this.filterPlansRecursively(plan.children);
+        const passesDate = (this.dateFilter === 'all') || this.isPlanInDateRange(plan);
+        const passesTab =
+          (this.activeTab === 'all') ||
+          (this.activeTab === 'active' && !plan.completed) ||
+          (this.activeTab === 'completed' && plan.completed);
+
+        if ((passesDate && passesTab) || filteredChildren.length > 0) {
+          result.push({ ...plan, children: filteredChildren });
+        }
+      }
+
+      return result;
     }
   }
 };

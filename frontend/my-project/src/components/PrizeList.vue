@@ -140,7 +140,7 @@
           
           <td>
             <div v-if="editMode[prize.id]?.description">
-              <input v-model="editData[prize.id].description" class="edit-input" />
+              <textarea v-model="editData[prize.id].description" rows="4" class="edit-input"></textarea>
               <button @click="saveField(prize.id, 'description')" class="save-btn">✓</button>
               <button @click="cancelEdit(prize.id, 'description')" class="cancel-btn">✗</button>
             </div>
