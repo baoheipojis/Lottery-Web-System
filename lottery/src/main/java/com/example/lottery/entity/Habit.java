@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "habits")
@@ -41,10 +42,12 @@ public class Habit {
     
     @ElementCollection
     @CollectionTable(name = "habit_completion_dates", joinColumns = @JoinColumn(name = "habit_id"))
-    @Column(name = "completion_date")
-    @Convert(converter = LocalDateStringConverter.class)
-    private Set<LocalDate> completionDates = new HashSet<>();
+    @Column(name = "completion_date", columnDefinition = "VARCHAR(10)")
+    private Set<String> completionDateStrings = new HashSet<>();
     
+    @Transient
+    private Set<LocalDate> completionDates;
+
     // Getters and setters
     public Long getId() {
         return id;
@@ -127,30 +130,36 @@ public class Habit {
     }
 
     public Set<LocalDate> getCompletionDates() {
+        if (completionDates == null) {
+            completionDates = completionDateStrings.stream()
+                .map(LocalDate::parse)
+                .collect(Collectors.toSet());
+        }
         return completionDates;
     }
 
-    public void setCompletionDates(Set<LocalDate> completionDates) {
-        this.completionDates = completionDates;
+    public void setCompletionDates(Set<LocalDate> dates) {
+        this.completionDates = dates;
+        this.completionDateStrings = dates.stream()
+            .map(LocalDate::toString)
+            .collect(Collectors.toSet());
     }
 
-    @Converter
-    public static class LocalDateStringConverter implements AttributeConverter<LocalDate, java.sql.Date> {
-        @Override
-        public java.sql.Date convertToDatabaseColumn(LocalDate attribute) {
-            if (attribute == null) {
-                return null;
-            }
-            // Make sure we're using the date's values, not relying on timezone conversion
-            return java.sql.Date.valueOf(attribute);
+    public void addCompletionDate(LocalDate date) {
+        this.completionDateStrings.add(date.toString());
+        if (this.completionDates != null) {
+            this.completionDates.add(date);
         }
-        
-        @Override
-        public LocalDate convertToEntityAttribute(java.sql.Date dbData) {
-            if (dbData == null) {
-                return null;
-            }
-            return dbData.toLocalDate();
+    }
+
+    public void removeCompletionDate(LocalDate date) {
+        this.completionDateStrings.remove(date.toString());
+        if (this.completionDates != null) {
+            this.completionDates.remove(date);
         }
+    }
+
+    public boolean hasCompletionDate(LocalDate date) {
+        return this.completionDateStrings.contains(date.toString());
     }
 }

@@ -42,25 +42,23 @@ public class HabitService {
         Habit habit = habitRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("习惯未找到"));
         
-        // Debug logs - should show the REAL date being processed
+        // Debug logs
         System.out.println("Original date parameter: " + date);
-        System.out.println("Original date year: " + date.getYear());
-        System.out.println("Original date month: " + date.getMonthValue());
-        System.out.println("Original date day: " + date.getDayOfMonth());
+        System.out.println("Date as string: " + date.toString());
         
-        // 如果已经标记为完成，则直接返回
-        if (habit.getCompletionDates().contains(date)) {
+        // 使用新的检查方法
+        if (habit.hasCompletionDate(date)) {
             System.out.println("Date already marked as completed: " + date);
             return habit;
         }
         
-        // 添加完成日期
-        habit.getCompletionDates().add(date);
+        // 使用新的添加方法
+        habit.addCompletionDate(date);
         
-        // Explicit debugging to see what's being added to the set
-        System.out.println("Dates in set after adding:");
-        for (LocalDate completionDate : habit.getCompletionDates()) {
-            System.out.println("  - " + completionDate);
+        // Debug log - 直接查看底层字符串集合
+        System.out.println("Dates in string set after adding:");
+        for (String dateStr : habit.completionDateStrings) {  // 必须使其公开或添加getter
+            System.out.println("  - " + dateStr);
         }
         
         // 计算连续天数
@@ -75,10 +73,10 @@ public class HabitService {
         
         Habit savedHabit = habitRepository.save(habit);
         
-        // Debug after save
-        System.out.println("After saving - dates in habit:");
-        for (LocalDate savedDate : savedHabit.getCompletionDates()) {
-            System.out.println("  - " + savedDate);
+        // Debug after save - 查看底层字符串集合
+        System.out.println("After saving - dates in string set:");
+        for (String dateStr : savedHabit.completionDateStrings) {
+            System.out.println("  - " + dateStr);
         }
         
         return savedHabit;
@@ -89,20 +87,18 @@ public class HabitService {
         Habit habit = habitRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("习惯未找到"));
         
-        // 如果未标记为完成，则直接返回
-        if (!habit.getCompletionDates().contains(date)) {
+        // 使用新的检查方法
+        if (!habit.hasCompletionDate(date)) {
             return habit;
         }
         
-        // 在移除日期前创建完成日期集合的副本，用于计算
+        // 在移除前计算奖励
         Set<LocalDate> datesCopy = new HashSet<>(habit.getCompletionDates());
-        
-        // 计算当时的连续天数和奖励
         int consecutiveDays = calculateConsecutiveDays(datesCopy, date);
         int rewardPoints = calculateRewardPoints(habit, consecutiveDays);
         
-        // 移除完成日期
-        habit.getCompletionDates().remove(date);
+        // 使用新的移除方法
+        habit.removeCompletionDate(date);
         
         // 扣除全部奖励点数（基础+加成）
         lotteryState.consumePlanPoints(rewardPoints, 
@@ -227,7 +223,7 @@ public class HabitService {
             .orElseThrow(() -> new RuntimeException("习惯未找到"));
             
         if (habit.isEnablePenalty() && habit.getPenaltyPoints() != null && habit.getPenaltyPoints() > 0) {
-            if (!habit.getCompletionDates().contains(date)) {
+            if (!habit.hasCompletionDate(date)) {
                 // 未完成，应用惩罚
                 lotteryState.consumePlanPoints(
                     habit.getPenaltyPoints(),
