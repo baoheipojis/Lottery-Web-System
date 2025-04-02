@@ -5,6 +5,7 @@
       <router-link to="/prizes" class="nav-link">View All Prizes</router-link>
       <router-link to="/plan-points" class="nav-link">View Plan Points</router-link>
       <router-link to="/plans" class="nav-link">Manage Plans</router-link>
+      <router-link to="/habits" class="nav-link">Manage Habits</router-link>
     </nav>
     <div class="content">
       <router-view></router-view>

@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import HistoryList from '../components/HistoryList.vue';
 import PlanPoints from '../PlanPoints.vue';
+import HabitManager from '@/components/HabitManager';
 
 const routes = [
     {
@@ -22,6 +23,11 @@ const routes = [
         path: '/plans',
         name: 'PlanTree',
         component: () => import('../components/PlanTree.vue')
+    },
+    {
+        path: '/habits',
+        name: 'HabitManager',
+        component: HabitManager
     }
 ];
 
