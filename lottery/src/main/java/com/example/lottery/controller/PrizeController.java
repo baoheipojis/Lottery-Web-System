@@ -139,4 +139,21 @@ public class PrizeController {
         
         return prizeRepository.save(existing);
     }
+
+    @PutMapping("/{id}/toggle")
+    public ResponseEntity<?> togglePrizeStatus(
+            @PathVariable Long id,
+            @RequestBody Map<String, Boolean> payload) {
+        
+        try {
+            boolean enabled = payload.getOrDefault("enabled", true);
+            Prize updatedPrize = prizeService.togglePrizeStatus(id, enabled);
+            return ResponseEntity.ok(updatedPrize);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "message", e.getMessage(),
+                "status", "error"
+            ));
+        }
+    }
 }

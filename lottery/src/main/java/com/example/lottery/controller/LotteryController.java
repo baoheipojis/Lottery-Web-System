@@ -22,23 +22,8 @@ public class LotteryController {
     
     @GetMapping("/history")
     public List<LotteryHistory> getHistory() {
+        // This should return the records in newest-to-oldest order
+        // Just pass through the data from the service without modification
         return lotteryService.getHistory();
-    }
-    
-    /**
-     * 更新奖励的兑现状态
-     */
-    @PutMapping("/history/{id}/redeem")
-    public ResponseEntity<?> updateRedeemStatus(@PathVariable Long id, @RequestBody Map<String, Boolean> payload) {
-        try {
-            boolean redeemed = payload.getOrDefault("redeemed", true);
-            LotteryHistory updatedHistory = lotteryService.updateRedeemStatus(id, redeemed);
-            return ResponseEntity.ok(updatedHistory);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "message", e.getMessage(),
-                "status", "error"
-            ));
-        }
     }
 }

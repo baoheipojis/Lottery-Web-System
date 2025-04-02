@@ -22,10 +22,11 @@ public class LotteryService {
     }
     
     /**
-     * 获取所有抽奖历史记录
+     * 获取所有抽奖历史记录，按照抽取时间降序排序（最新的在前）
      * @return 抽奖历史记录列表
      */
     public List<LotteryHistory> getHistory() {
+        // Repository findAll method is now configured to return records in DESC order
         return lotteryHistoryRepository.findAll();
     }
     

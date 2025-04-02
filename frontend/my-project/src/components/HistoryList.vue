@@ -73,6 +73,8 @@ export default {
       this.loading = true;
       axios.get('/api/lottery/history')
         .then(response => {
+          // Store the data as is, without additional sorting
+          // The backend should already return it in newest-to-oldest order
           this.history = response.data;
         })
         .catch(error => {

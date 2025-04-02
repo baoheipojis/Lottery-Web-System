@@ -1,8 +1,6 @@
 import { formatDateTimeForInput, isDateCompleted, isFutureDate, isToday } from '@/utils/date-utils';
 
-// Create a mock date-utils.js file for testing
-// In actual implementation, move these functions to a separate utility file
-
+// Tests for date utility functions
 describe('Date utility functions', () => {
   it('formats date time for input correctly', () => {
     const testDate = new Date(2025, 3, 15, 14, 30); // April 15, 2025, 14:30

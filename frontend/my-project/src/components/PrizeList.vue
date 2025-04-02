@@ -46,6 +46,7 @@
           <th>Rarity</th>
           <th>Description</th>
           <th>可重复获取</th>
+          <th>启用状态</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -94,6 +95,14 @@
               class="checkbox-center"
             />
           </td>
+          <td class="center-content">
+            <input 
+              v-model="newPrize.enabled" 
+              type="checkbox"
+              class="checkbox-center"
+              checked
+            />
+          </td>
           <td>
             <button 
               @click="addPrize" 
@@ -109,7 +118,8 @@
           :key="prize.id"
           :class="{
             'rarity-purple': prize.rarity === 4,
-            'rarity-yellow': prize.rarity === 5
+            'rarity-yellow': prize.rarity === 5,
+            'disabled-prize': !prize.enabled
           }"
         >
           <td>
@@ -179,7 +189,32 @@
             </div>
           </td>
           
+          <td class="center-content">
+            <div v-if="editMode[prize.id]?.enabled">
+              <input 
+                v-model="editData[prize.id].enabled" 
+                type="checkbox"
+                class="checkbox-center"
+              />
+              <button @click="saveField(prize.id, 'enabled')" class="save-btn">✓</button>
+              <button @click="cancelEdit(prize.id, 'enabled')" class="cancel-btn">✗</button>
+            </div>
+            <div v-else class="cell-with-edit">
+              <span :class="{'enabled': prize.enabled, 'disabled': !prize.enabled}">
+                {{ prize.enabled ? '启用' : '禁用' }}
+              </span>
+              <button @click="startEdit(prize, 'enabled')" class="edit-btn">✎</button>
+            </div>
+          </td>
+          
           <td>
+            <button 
+              @click="togglePrizeStatus(prize)"
+              class="toggle-status-btn"
+              :class="{'enable-btn': !prize.enabled, 'disable-btn': prize.enabled}"
+            >
+              {{ prize.enabled ? '禁用' : '启用' }}
+            </button>
             <button 
               @click="confirmDelete(prize)"
               class="delete-btn"
@@ -334,7 +369,8 @@ export default {
         rarity: '',
         fiveStarType: 'normal',
         description: '',
-        isRepeatable: false
+        isRepeatable: false,
+        enabled: true // 默认启用
       },
       submitMessage: '',
       submitStatus: '',
@@ -406,7 +442,8 @@ export default {
             rarity: '',
             fiveStarType: 'normal',
             description: '',
-            isRepeatable: false
+            isRepeatable: false,
+            enabled: true
           };
           
           // Show success message
@@ -705,6 +742,36 @@ export default {
         }, 5000);
       }
     },
+    togglePrizeStatus(prize) {
+      const newStatus = !prize.enabled;
+      const statusText = newStatus ? '启用' : '禁用';
+      
+      axios.put(`/api/prizes/${prize.id}/toggle`, { enabled: newStatus })
+        .then(response => {
+          // 更新本地奖品数据
+          const index = this.prizes.findIndex(p => p.id === prize.id);
+          if (index !== -1) {
+            this.prizes[index] = response.data;
+          }
+          
+          this.submitMessage = `奖品 "${prize.name}" 已${statusText}`;
+          this.submitStatus = 'success';
+          
+          // 3秒后清除消息
+          setTimeout(() => {
+            this.submitMessage = '';
+          }, 3000);
+        })
+        .catch(error => {
+          console.error(`切换奖品状态失败:`, error);
+          this.submitMessage = `${statusText}奖品失败: ${error.response?.data?.message || '未知错误'}`;
+          this.submitStatus = 'error';
+          
+          setTimeout(() => {
+            this.submitMessage = '';
+          }, 5000);
+        });
+    },
     toggleExplanationModal() {
       this.showExplanation = !this.showExplanation;
     }
@@ -893,71 +960,95 @@ h1 {
   font-size: 14px;
   border-radius: 4px;
   cursor: pointer;
-  width: 100%;
+  transition: background-color 0.2s;
 }
 
 .delete-btn:hover {
   background-color: #d32f2f;
 }
 
-.row-toggle {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 10px;
-  font-size: 14px;
-}
-
-.row-toggle label {
-  display: flex;
-  align-items: center;
+.toggle-status-btn {
+  margin-right: 5px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
   cursor: pointer;
-  user-select: none;
+  font-size: 14px;
+  transition: background-color 0.2s;
 }
 
-.row-toggle input[type="checkbox"] {
-  margin-right: 6px;
+.enable-btn {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.enable-btn:hover {
+  background-color: #388E3C;
+}
+
+.disable-btn {
+  background-color: #FFC107;
+  color: #333;
+}
+
+.disable-btn:hover {
+  background-color: #FFA000;
+}
+
+.disabled-prize {
+  opacity: 0.6;
+}
+
+.enabled {
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+.disabled {
+  color: #F44336;
+  font-weight: bold;
 }
 
 .draw-section {
   display: flex;
   justify-content: center;
-  margin: 30px 0;
+  margin: 20px 0;
   gap: 15px;
 }
 
 .draw-btn {
-  background: linear-gradient(135deg, #ff9800, #ff5722);
+  background-color: #4CAF50;
   color: white;
   border: none;
-  padding: 15px 60px;
-  font-size: 20px;
-  font-weight: bold;
-  border-radius: 50px;
+  padding: 12px 30px;
+  font-size: 18px;
+  border-radius: 6px;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(255, 87, 34, 0.4);
-  transition: all 0.3s ease;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  font-weight: bold;
+  transition: all 0.3s;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .draw-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 7px 15px rgba(255, 87, 34, 0.5);
+  background-color: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
 .draw-btn:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 5px rgba(255, 87, 34, 0.5);
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .draw-btn:disabled {
-  background: linear-gradient(135deg, #cccccc, #999999);
+  background-color: #cccccc;
   cursor: not-allowed;
-  transform: translateY(0);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transform: none;
+  box-shadow: none;
 }
 
 .ten-draw {
-  background: linear-gradient(135deg, #9c27b0, #673ab7);
+  background-color: #9C27B0;
 }
 
 .ten-draw:hover {
@@ -1287,7 +1378,7 @@ tr:hover .edit-btn {
   z-index: 1000;
 }
 
-.modal-content {
+.explanation-modal .modal-content {
   background-color: white;
   border-radius: 8px;
   padding: 0;
@@ -1298,23 +1389,6 @@ tr:hover .edit-btn {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  background-color: #f5f5f5;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.modal-header h2 {
-  margin: 0;
-  color: #333;
-  font-size: 20px;
 }
 
 .modal-actions {
@@ -1376,5 +1450,44 @@ tr:hover .edit-btn {
 
 .explanation-content li:last-child {
   margin-bottom: 0;
+}
+
+/* Row toggle styling */
+.row-toggle {
+  text-align: right;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.row-toggle label {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.row-toggle input[type="checkbox"] {
+  margin-right: 5px;
+}
+
+/* Mobile responsiveness improvements */
+@media (max-width: 768px) {
+  .habits-list {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-row {
+    flex-direction: column;
+  }
+  
+  .header-section {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .modal-content {
+    width: 95%;
+    max-width: none;
+  }
 }
 </style>

@@ -15,6 +15,10 @@ public class LotteryState {
     private int sinceLastFiveStar;
     private FiveStarType lastFiveStar;
 
+    // 抽奖保底系统相关计数器
+    private int noFourStarCount = 0;  // 连续未获得四星的次数
+    private int noFiveStarCount = 0;  // 连续未获得五星的次数
+
     public enum FiveStarType {
         NORMAL,
         LIMITED
@@ -74,6 +78,10 @@ public class LotteryState {
     }
 
     public void addPlanPoints(int amount, String description) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("添加的计划点数必须为正数");
+        }
+
         PlanPointsRecord record = new PlanPointsRecord();
         record.setAmountChange(amount);
         record.setTimestamp(LocalDateTime.now());
@@ -87,9 +95,14 @@ public class LotteryState {
     }
 
     public void consumePlanPoints(int amount, String description) {
-        if (getCurrentPlanPoints() < amount) {
-            throw new IllegalStateException("计划点不足");
+        if (amount <= 0) {
+            throw new IllegalArgumentException("消耗的计划点数必须为正数");
         }
+
+        if (getCurrentPlanPoints() < amount) {
+            throw new IllegalStateException("计划点不足，当前点数: " + getCurrentPlanPoints() + "，需要点数: " + amount);
+        }
+
         PlanPointsRecord record = new PlanPointsRecord();
         record.setAmountChange(-amount);
         record.setTimestamp(LocalDateTime.now());
@@ -123,5 +136,49 @@ public class LotteryState {
             count++;
         }
         return count;
+    }
+
+    // 抽奖保底系统相关方法
+
+    /**
+     * 获取连续未获得四星的次数
+     */
+    public int getNoFourStarCount() {
+        return noFourStarCount;
+    }
+
+    /**
+     * 获取连续未获得五星的次数
+     */
+    public int getNoFiveStarCount() {
+        return noFiveStarCount;
+    }
+
+    /**
+     * 增加连续未获得四星的计数
+     */
+    public void incrementNoFourStarCount() {
+        noFourStarCount++;
+    }
+
+    /**
+     * 增加连续未获得五星的计数
+     */
+    public void incrementNoFiveStarCount() {
+        noFiveStarCount++;
+    }
+
+    /**
+     * 重置连续未获得四星的计数
+     */
+    public void resetNoFourStarCount() {
+        noFourStarCount = 0;
+    }
+
+    /**
+     * 重置连续未获得五星的计数
+     */
+    public void resetNoFiveStarCount() {
+        noFiveStarCount = 0;
     }
 }

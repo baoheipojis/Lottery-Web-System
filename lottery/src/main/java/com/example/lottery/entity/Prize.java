@@ -25,6 +25,9 @@ public class Prize {
     @Column(name = "is_repeatable", nullable = false)
     private Boolean isRepeatable = true; // 默认为 TRUE（可重复）
 
+    @Column(name = "enabled", nullable = false)
+    private boolean enabled = true; // 默认新添加的奖品为启用状态
+
     // Constructors, Getters, and Setters
     public Prize() {}
 
@@ -34,14 +37,18 @@ public class Prize {
         this.fiveStarType = fiveStarType;
         this.description = description;
         this.isRepeatable = true;
+        this.enabled = true;
     }
+
     public Prize(String name, int rarity, String fiveStarType, String description, Boolean isRepeatable) {
         this.name = name;
         this.rarity = rarity;
         this.fiveStarType = fiveStarType;
         this.description = description;
         this.isRepeatable = isRepeatable;
+        this.enabled = true;
     }
+
     public Boolean getIsRepeatable() {
         return isRepeatable;
     }
@@ -88,5 +95,13 @@ public class Prize {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }
