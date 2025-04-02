@@ -55,9 +55,9 @@ public class HabitService {
         // 使用新的添加方法
         habit.addCompletionDate(date);
         
-        // Debug log - 直接查看底层字符串集合
+        // Debug log - 使用getter方法访问字符串集合
         System.out.println("Dates in string set after adding:");
-        for (String dateStr : habit.completionDateStrings) {  // 必须使其公开或添加getter
+        for (String dateStr : habit.getCompletionDateStrings()) {  // 使用getter方法
             System.out.println("  - " + dateStr);
         }
         
@@ -73,9 +73,9 @@ public class HabitService {
         
         Habit savedHabit = habitRepository.save(habit);
         
-        // Debug after save - 查看底层字符串集合
+        // Debug after save - 使用getter方法查看字符串集合
         System.out.println("After saving - dates in string set:");
-        for (String dateStr : savedHabit.completionDateStrings) {
+        for (String dateStr : savedHabit.getCompletionDateStrings()) {  // 使用getter方法
             System.out.println("  - " + dateStr);
         }
         

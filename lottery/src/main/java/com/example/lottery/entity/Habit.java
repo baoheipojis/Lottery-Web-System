@@ -162,4 +162,8 @@ public class Habit {
     public boolean hasCompletionDate(LocalDate date) {
         return this.completionDateStrings.contains(date.toString());
     }
+
+    public Set<String> getCompletionDateStrings() {
+        return completionDateStrings;
+    }
 }
