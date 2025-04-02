@@ -2,50 +2,54 @@
   <div>
     <h1>Lottery History</h1>
     
-    <!-- 操作按钮区域 -->
-    <div class="actions-bar">
-      <button @click="confirmClearHistory" class="clear-btn" :disabled="histories.length === 0">
-        清空抽奖记录
-      </button>
+    <div v-if="loading" class="loading">Loading history...</div>
+    <div v-else-if="history.length === 0" class="no-records">
+      No lottery records found. Try your luck with the lottery!
+    </div>
+    <div v-else>
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Prize</th>
+            <th>Rarity</th>
+            <th>Result</th>
+            <th>兑现状态</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in history" :key="item.id" :class="getRowClass(item)">
+            <td>{{ formatDate(item.drawTime) }}</td>
+            <td>{{ item.prizeName }}</td>
+            <td>
+              {{ item.rarity === 5 
+                ? (item.fiveStarType?.toUpperCase() === 'LIMITED' ? '限定五星' : '普通五星') 
+                : item.rarity + '星' 
+              }}
+            </td>
+            <td>{{ item.result }}</td>
+            <td :class="{'redeemed': item.redeemed, 'not-redeemed': !item.redeemed}">
+              {{ item.redeemed ? '已兑现' : '未兑现' }}
+            </td>
+            <td>
+              <button 
+                @click="toggleRedeemStatus(item)" 
+                class="toggle-btn"
+                :class="{'redeem-btn': !item.redeemed, 'un-redeem-btn': item.redeemed}"
+              >
+                {{ item.redeemed ? '标记为未兑现' : '标记为已兑现' }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
     
-    <!-- 消息提示 -->
-    <div v-if="message" :class="['message', messageType]">
+    <!-- Status message -->
+    <div v-if="message" :class="['status-message', messageType]">
       {{ message }}
     </div>
-    
-    <table>
-      <thead>
-        <tr>
-          <th>Draw Time</th>
-          <th>Prize</th>
-          <th>Rarity (stars)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="history in histories"
-          :key="history.id"
-          :class="{
-            'rarity-purple': history.rarity === 4,
-            'rarity-yellow': history.rarity === 5
-          }"
-        >
-          <td>{{ formatTimestamp(history.drawTime) }}</td>
-          <td>{{ history.prizeName }}</td>
-          <td>
-            {{ history.rarity === 5
-                ? (history.isLimited ? '限定五星' : '普通五星')
-                : (history.rarity + '星')
-            }}
-          </td>
-        </tr>
-        <!-- 无数据提示 -->
-        <tr v-if="histories.length === 0">
-          <td colspan="3" class="empty-message">暂无抽奖记录</td>
-        </tr>
-      </tbody>
-    </table>
   </div>
 </template>
 
@@ -55,57 +59,75 @@ import axios from 'axios';
 export default {
   data() {
     return {
-      histories: [],
+      history: [],
+      loading: true,
       message: '',
-      messageType: 'info'
+      messageType: ''
     };
   },
   created() {
-    this.fetchHistories();
+    this.fetchHistory();
   },
   methods: {
-    fetchHistories() {
-      axios.get('/api/lottery-history')
+    fetchHistory() {
+      this.loading = true;
+      axios.get('/api/lottery/history')
         .then(response => {
-          this.histories = response.data.sort((a,b) => new Date(b.drawTime) - new Date(a.drawTime));
+          this.history = response.data;
         })
         .catch(error => {
-          console.error('Error fetching histories:', error);
+          console.error('Error fetching history:', error);
+          this.showMessage('Failed to load lottery history', 'error');
+        })
+        .finally(() => {
+          this.loading = false;
         });
     },
-    
-    formatTimestamp(timestamp) {
-      if (!timestamp) return '未知时间';
-      // 使用中国时区显示时间
-      return new Date(timestamp).toLocaleString('zh-CN', {
-        timeZone: 'Asia/Shanghai',
-        hour12: false
-      });
+    formatDate(dateString) {
+      if (!dateString) return 'N/A';
+      const date = new Date(dateString);
+      return date.toLocaleString();
     },
-    
-    confirmClearHistory() {
-      if (confirm('确定要删除所有抽奖记录吗？此操作不可恢复！')) {
-        this.clearAllHistory();
-      }
+    getRowClass(item) {
+      return {
+        'rarity-3': item.rarity === 3,
+        'rarity-4': item.rarity === 4,
+        'rarity-5': item.rarity === 5,
+        'five-star-limited': item.rarity === 5 && item.fiveStarType?.toUpperCase() === 'LIMITED',
+        'not-redeemed-row': !item.redeemed
+      };
     },
-    
-    clearAllHistory() {
-      axios.delete('/api/lottery-history/all')
+    toggleRedeemStatus(item) {
+      const newStatus = !item.redeemed;
+      axios.put(`/api/lottery/history/${item.id}/redeem`, { redeemed: newStatus })
         .then(response => {
-          this.histories = [];
-          this.showMessage(response.data.message || '已清空所有抽奖记录', 'success');
+          // Update the local history item
+          const index = this.history.findIndex(h => h.id === item.id);
+          if (index !== -1) {
+            this.history[index] = response.data;
+          }
+          
+          this.showMessage(
+            `奖励 "${item.prizeName}" 已被标记为${newStatus ? '已兑现' : '未兑现'}`, 
+            'success'
+          );
         })
         .catch(error => {
-          console.error('Error clearing history:', error);
-          this.showMessage('清空记录失败: ' + (error.response?.data?.message || '未知错误'), 'error');
+          console.error('Error updating redeem status:', error);
+          this.showMessage(
+            `无法更新兑现状态: ${error.response?.data?.message || '未知错误'}`, 
+            'error'
+          );
         });
     },
-    
-    showMessage(message, type = 'info') {
-      this.message = message;
+    showMessage(text, type) {
+      this.message = text;
       this.messageType = type;
+      
+      // Clear message after 3 seconds
       setTimeout(() => {
         this.message = '';
+        this.messageType = '';
       }, 3000);
     }
   }
@@ -113,108 +135,123 @@ export default {
 </script>
 
 <style scoped>
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  border-radius: 5px;
-  overflow: hidden;
-  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+th, td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
 }
 
 th {
   background-color: #4CAF50;
   color: white;
-  padding: 12px;
-  font-weight: bold;
-  text-align: left;
-}
-
-td {
-  padding: 12px;
-  border-bottom: 1px solid #ddd;
-}
-
-tbody tr:nth-child(even) {
-  background-color: #f2f2f2;
-}
-
-tbody tr:hover {
-  background-color: #e0e0e0;
-}
-
-.rarity-purple {
-  color: #9c27b0;
   font-weight: bold;
 }
 
-.rarity-yellow {
-  color: #ffc107;
-  font-weight: bold;
-  text-shadow: 0px 0px 1px #000;
+.rarity-3 {
+  background-color: #f9f9f9;
 }
 
-h1 {
-  color: #333;
+.rarity-4 {
+  background-color: #e6d0f3;
+}
+
+.rarity-5 {
+  background-color: #fff3cd;
+}
+
+.five-star-limited {
+  background-color: #ffe0b2;
+}
+
+.not-redeemed-row {
+  opacity: 0.7;
+}
+
+.loading, .no-records {
   text-align: center;
-  margin-bottom: 20px;
+  padding: 20px;
+  font-size: 18px;
+  color: #666;
 }
 
-.actions-bar {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 15px;
+.redeemed {
+  color: #4CAF50;
+  font-weight: bold;
 }
 
-.clear-btn {
-  background-color: #f44336;
-  color: white;
+.not-redeemed {
+  color: #f44336;
+  font-weight: bold;
+}
+
+.toggle-btn {
+  padding: 6px 10px;
   border: none;
-  padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
-  transition: background-color 0.3s;
+  transition: all 0.2s ease;
 }
 
-.clear-btn:hover {
-  background-color: #d32f2f;
+.redeem-btn {
+  background-color: #4CAF50;
+  color: white;
 }
 
-.clear-btn:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
+.redeem-btn:hover {
+  background-color: #388E3C;
 }
 
-.message {
-  margin: 15px 0;
-  padding: 10px;
+.un-redeem-btn {
+  background-color: #f44336;
+  color: white;
+}
+
+.un-redeem-btn:hover {
+  background-color: #D32F2F;
+}
+
+.status-message {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px 15px;
   border-radius: 4px;
-  text-align: center;
+  font-weight: bold;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  animation: fadeIn 0.3s, fadeOut 0.3s 2.7s;
+  z-index: 1000;
 }
 
 .success {
-  background-color: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
+  background-color: #4CAF50;
+  color: white;
 }
 
 .error {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
+  background-color: #f44336;
+  color: white;
 }
 
-.info {
-  background-color: #d1ecf1;
-  color: #0c5460;
-  border: 1px solid #bee5eb;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.empty-message {
-  text-align: center;
-  padding: 20px;
-  color: #777;
-  font-style: italic;
+@keyframes fadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(20px); }
 }
 </style>

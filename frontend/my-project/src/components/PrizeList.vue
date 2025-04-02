@@ -1,6 +1,19 @@
 <template>
   <div>
-    <h1>All Prizes</h1>
+    <div class="header-section">
+      <h1>All Prizes</h1>
+      
+      <!-- Lottery explanation button -->
+      <div class="lottery-info-container">
+        <button 
+          class="info-button" 
+          @click="toggleExplanationModal" 
+          title="抽奖说明"
+        >
+          <i class="info-icon">ℹ</i>
+        </button>
+      </div>
+    </div>
     
     <!-- Draw Card Button -->
     <div class="draw-section">
@@ -257,6 +270,55 @@
         </div>
       </div>
     </div>
+    
+    <!-- Lottery explanation modal -->
+    <div v-if="showExplanation" class="explanation-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>抽奖说明</h2>
+          <div class="modal-actions">
+            <button 
+              @click="isSimpleExplanation = true" 
+              class="toggle-btn"
+              :class="{ active: isSimpleExplanation }"
+            >
+              简单版
+            </button>
+            <button 
+              @click="isSimpleExplanation = false" 
+              class="toggle-btn"
+              :class="{ active: !isSimpleExplanation }"
+            >
+              完整版
+            </button>
+            <button class="close-btn" @click="showExplanation = false">×</button>
+          </div>
+        </div>
+        
+        <!-- Simple explanation -->
+        <div v-if="isSimpleExplanation" class="explanation-content">
+          <ol>
+            <li>奖励分为三星、四星、五星，五星又分为限定五星和普通五星。</li>
+            <li>每10抽必出一个四星或以上物品。</li>
+            <li>每90抽必出一个五星物品。</li>
+            <li>若上一个五星不存在或为限定五星，本次五星有50%概率为限定五星，50%概率为普通五星。否则，若上次为普通五星，本次五星必为限定五星。</li>
+            <li>综合概率：四星13%，五星1.6%。</li>
+          </ol>
+        </div>
+        
+        <!-- Complete explanation -->
+        <div v-else class="explanation-content">
+          <ol start="0">
+            <li>奖励稀有度有三星、四星、普通五星和限定五星四种，稀有度依次上升。</li>
+            <li>四星基础概率为5.1%，如果连续8抽没有四星，第9抽是4星的概率为56.1%。</li>
+            <li>5星基础概率为0.6%，如果连续73抽没有五星，从第74抽起，当前抽奖为五星的概率提升6%，直至抽出五星。</li>
+            <li>保证10抽必出一个四星及以上奖励。如果连续9抽是三星，第10抽必定是4星或5星，如果是5星，那么第11抽必是四星及以上，如果第11抽仍是五星，第12抽必定是四星及以上。以此类推。</li>
+            <li>如果上一个五星是普通五星，本次五星必定为限定五星；如果上次抽出的五星为限定五星或没有上个五星，本次抽出的五星有50%概率为普通五星，50%概率为限定五星。</li>
+            <li>综合概率：四星13%，五星1.6%</li>
+          </ol>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -286,7 +348,10 @@ export default {
       currentDrawIndex: 0,
       drawCount: 0,
       editMode: {},
-      editData: {}
+      editData: {},
+      // Lottery explanation properties
+      showExplanation: false,
+      isSimpleExplanation: true // true for simple, false for complete
     };
   },
   created() {
@@ -639,6 +704,9 @@ export default {
           this.submitMessage = '';
         }, 5000);
       }
+    },
+    toggleExplanationModal() {
+      this.showExplanation = !this.showExplanation;
     }
   },
   watch: {
@@ -1166,5 +1234,147 @@ tr:hover .edit-btn {
 
 .cancel-btn {
   color: red;
+}
+
+/* Header section with info button */
+.header-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+/* Info button styling */
+.lottery-info-container {
+  position: relative;
+}
+
+.info-button {
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s;
+}
+
+.info-button:hover {
+  background-color: #1976D2;
+}
+
+.info-icon {
+  font-style: normal;
+  font-weight: bold;
+}
+
+/* Modal styling */
+.explanation-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 8px;
+  padding: 0;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background-color: #f5f5f5;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #333;
+  font-size: 20px;
+}
+
+.modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toggle-btn {
+  padding: 6px 12px;
+  background-color: #e0e0e0;
+  color: #333;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.toggle-btn.active {
+  background-color: #2196F3;
+  color: white;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #757575;
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.explanation-content {
+  padding: 20px;
+  line-height: 1.6;
+}
+
+.explanation-content ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.explanation-content li {
+  margin-bottom: 10px;
+}
+
+.explanation-content li:last-child {
+  margin-bottom: 0;
 }
 </style>

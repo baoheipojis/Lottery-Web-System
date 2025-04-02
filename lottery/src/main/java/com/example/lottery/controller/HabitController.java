@@ -54,9 +54,14 @@ public class HabitController {
             @PathVariable Long id,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         try {
+            // 添加日志以便调试
+            System.out.println("Marking habit as completed for date: " + date);
+            
             Habit completedHabit = habitService.markHabitAsCompleted(id, date);
             return ResponseEntity.ok(completedHabit);
         } catch (Exception e) {
+            System.err.println("Error marking habit as completed: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.badRequest().build();
         }
     }
@@ -66,9 +71,14 @@ public class HabitController {
             @PathVariable Long id,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         try {
+            // 添加日志以便调试
+            System.out.println("Unmarking habit completion for date: " + date);
+            
             Habit habit = habitService.unmarkHabitCompletion(id, date);
             return ResponseEntity.ok(habit);
         } catch (Exception e) {
+            System.err.println("Error unmarking habit completion: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.badRequest().build();
         }
     }

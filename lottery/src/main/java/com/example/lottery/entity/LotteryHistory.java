@@ -31,6 +31,10 @@ public class LotteryHistory {
     @Column(name = "prize_id", nullable = false)
     private Long prizeId;
 
+    // 添加是否兑现的字段，默认为已兑现
+    @Column(name = "redeemed", nullable = false)
+    private boolean redeemed = true;
+
     @Transient
     public boolean isLimited() {
         return this.rarity == 5 && "LIMITED".equalsIgnoreCase(this.fiveStarType);
@@ -97,5 +101,13 @@ public class LotteryHistory {
 
     public void setPrizeId(Long prizeId) {
         this.prizeId = prizeId;
+    }
+
+    public boolean isRedeemed() {
+        return redeemed;
+    }
+
+    public void setRedeemed(boolean redeemed) {
+        this.redeemed = redeemed;
     }
 }
