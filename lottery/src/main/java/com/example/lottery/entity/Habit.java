@@ -42,6 +42,7 @@ public class Habit {
     @ElementCollection
     @CollectionTable(name = "habit_completion_dates", joinColumns = @JoinColumn(name = "habit_id"))
     @Column(name = "completion_date")
+    @Convert(converter = LocalDateStringConverter.class)
     private Set<LocalDate> completionDates = new HashSet<>();
     
     // Getters and setters
@@ -131,5 +132,25 @@ public class Habit {
 
     public void setCompletionDates(Set<LocalDate> completionDates) {
         this.completionDates = completionDates;
+    }
+
+    @Converter
+    public static class LocalDateStringConverter implements AttributeConverter<LocalDate, java.sql.Date> {
+        @Override
+        public java.sql.Date convertToDatabaseColumn(LocalDate attribute) {
+            if (attribute == null) {
+                return null;
+            }
+            // Make sure we're using the date's values, not relying on timezone conversion
+            return java.sql.Date.valueOf(attribute);
+        }
+        
+        @Override
+        public LocalDate convertToEntityAttribute(java.sql.Date dbData) {
+            if (dbData == null) {
+                return null;
+            }
+            return dbData.toLocalDate();
+        }
     }
 }

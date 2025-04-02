@@ -579,12 +579,14 @@ export default {
         return;
       }
       
-      // 修复日期偏移问题 - 使用日期的年月日组件创建日期字符串，而不是使用toISOString
-      // 这样避免了时区导致的日期偏移
+      // 优化日期格式化 - 确保日期组件使用本地值，而不是UTC
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
       const dateString = `${year}-${month}-${day}`; // 格式为 YYYY-MM-DD
+      
+      console.log('点击日期:', date);
+      console.log('格式化后发送的日期字符串:', dateString);
       
       try {
         if (this.isDateCompleted(habit, date)) {

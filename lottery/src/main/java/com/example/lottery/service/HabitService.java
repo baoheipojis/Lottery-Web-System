@@ -42,13 +42,26 @@ public class HabitService {
         Habit habit = habitRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("习惯未找到"));
         
+        // Debug logs - should show the REAL date being processed
+        System.out.println("Original date parameter: " + date);
+        System.out.println("Original date year: " + date.getYear());
+        System.out.println("Original date month: " + date.getMonthValue());
+        System.out.println("Original date day: " + date.getDayOfMonth());
+        
         // 如果已经标记为完成，则直接返回
         if (habit.getCompletionDates().contains(date)) {
+            System.out.println("Date already marked as completed: " + date);
             return habit;
         }
         
         // 添加完成日期
         habit.getCompletionDates().add(date);
+        
+        // Explicit debugging to see what's being added to the set
+        System.out.println("Dates in set after adding:");
+        for (LocalDate completionDate : habit.getCompletionDates()) {
+            System.out.println("  - " + completionDate);
+        }
         
         // 计算连续天数
         int consecutiveDays = calculateConsecutiveDays(habit.getCompletionDates(), date);
@@ -60,7 +73,15 @@ public class HabitService {
         lotteryState.addPlanPoints(rewardPoints, 
             "完成习惯【" + habit.getName() + "】获得奖励 (连续" + consecutiveDays + "天)");
         
-        return habitRepository.save(habit);
+        Habit savedHabit = habitRepository.save(habit);
+        
+        // Debug after save
+        System.out.println("After saving - dates in habit:");
+        for (LocalDate savedDate : savedHabit.getCompletionDates()) {
+            System.out.println("  - " + savedDate);
+        }
+        
+        return savedHabit;
     }
     
     @Transactional

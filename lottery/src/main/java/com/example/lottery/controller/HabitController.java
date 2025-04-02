@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -52,15 +54,19 @@ public class HabitController {
     @PostMapping("/{id}/complete")
     public ResponseEntity<Habit> markHabitAsCompleted(
             @PathVariable Long id,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+            @RequestParam String date) {  // 修改为直接接收字符串
         try {
-            // 添加日志以便调试
-            System.out.println("Marking habit as completed for date: " + date);
+            // 添加详细日志
+            System.out.println("接收到完成习惯请求, 原始日期字符串: " + date);
             
-            Habit completedHabit = habitService.markHabitAsCompleted(id, date);
+            // 手动解析日期，避免隐式时区转换
+            LocalDate parsedDate = LocalDate.parse(date, DateTimeFormatter.ISO_DATE);
+            System.out.println("解析后的日期对象: " + parsedDate);
+            
+            Habit completedHabit = habitService.markHabitAsCompleted(id, parsedDate);
             return ResponseEntity.ok(completedHabit);
         } catch (Exception e) {
-            System.err.println("Error marking habit as completed: " + e.getMessage());
+            System.err.println("标记习惯完成时出错: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.badRequest().build();
         }
@@ -69,15 +75,19 @@ public class HabitController {
     @PostMapping("/{id}/uncomplete")
     public ResponseEntity<Habit> unmarkHabitCompletion(
             @PathVariable Long id,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+            @RequestParam String date) {  // 修改为直接接收字符串
         try {
-            // 添加日志以便调试
-            System.out.println("Unmarking habit completion for date: " + date);
+            // 添加详细日志
+            System.out.println("接收到取消习惯完成请求, 原始日期字符串: " + date);
             
-            Habit habit = habitService.unmarkHabitCompletion(id, date);
+            // 手动解析日期，避免隐式时区转换
+            LocalDate parsedDate = LocalDate.parse(date, DateTimeFormatter.ISO_DATE);
+            System.out.println("解析后的日期对象: " + parsedDate);
+            
+            Habit habit = habitService.unmarkHabitCompletion(id, parsedDate);
             return ResponseEntity.ok(habit);
         } catch (Exception e) {
-            System.err.println("Error unmarking habit completion: " + e.getMessage());
+            System.err.println("取消习惯完成时出错: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.badRequest().build();
         }
