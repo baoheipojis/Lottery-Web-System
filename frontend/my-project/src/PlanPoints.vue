@@ -90,17 +90,24 @@ export default {
       setTimeout(() => {
         this.message = '';
       }, 3000);
+    },
+    
+    async fetchPlanPoints() {
+      try {
+        const response = await fetch('/api/plan-points');
+        const data = await response.json();
+        this.currentPlanPoints = data.currentPlanPoints;
+        // 修改：对记录进行排序，从最新到最老
+        this.planPointsRecords = data.planPointsRecords.sort((a, b) => {
+          return new Date(b.timestamp) - new Date(a.timestamp);
+        });
+      } catch (error) {
+        console.error('Error fetching plan points:', error);
+      }
     }
   },
   async created() {
-    try {
-      const response = await fetch('/api/plan-points');
-      const data = await response.json();
-      this.currentPlanPoints = data.currentPlanPoints;
-      this.planPointsRecords = data.planPointsRecords;
-    } catch (error) {
-      console.error('Error fetching plan points data:', error);
-    }
+    await this.fetchPlanPoints();
   }
 };
 </script>
