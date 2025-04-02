@@ -85,6 +85,32 @@
           </div>
         </div>
         
+        <!-- 惩罚设置部分 -->
+        <div class="penalty-section">
+          <div class="form-group">
+            <div class="checkbox-group">
+              <input 
+                id="enablePenalty" 
+                v-model="newHabit.enablePenalty" 
+                type="checkbox"
+              />
+              <label for="enablePenalty">启用未完成惩罚</label>
+            </div>
+          </div>
+          
+          <div class="form-group" v-if="newHabit.enablePenalty">
+            <label for="penaltyPoints">惩罚点数（未完成时扣除）</label>
+            <input 
+              id="penaltyPoints" 
+              v-model.number="newHabit.penaltyPoints" 
+              type="number" 
+              min="1"
+              placeholder="例如：10"
+              required
+            />
+          </div>
+        </div>
+        
         <div class="form-actions">
           <button type="submit" class="btn btn-primary">创建习惯</button>
           <button type="button" class="btn btn-secondary" @click="resetForm">重置</button>
@@ -126,6 +152,11 @@
               <span class="reward-label">连续 {{ habit.consecutiveDaysThreshold2 }} 天:</span>
               <span class="reward-value">+{{ habit.bonusPoints2 }} 点</span>
             </div>
+            
+            <div v-if="habit.enablePenalty" class="reward-item penalty">
+              <span class="reward-label">未完成惩罚:</span>
+              <span class="penalty-value">-{{ habit.penaltyPoints }} 点</span>
+            </div>
           </div>
           
           <div class="habit-calendar">
@@ -154,6 +185,16 @@
                   @click="toggleHabitCompletion(habit, date)">
                 {{ date.getDate() }}
               </div>
+            </div>
+            
+            <div class="calendar-actions" v-if="habit.enablePenalty">
+              <button 
+                @click="applyPenaltyForDate(habit)" 
+                class="penalty-btn"
+                title="手动执行未完成惩罚"
+              >
+                手动执行惩罚
+              </button>
             </div>
           </div>
           
@@ -243,9 +284,64 @@
             </div>
           </div>
           
+          <!-- 惩罚设置部分 -->
+          <div class="penalty-section">
+            <div class="form-group">
+              <div class="checkbox-group">
+                <input 
+                  id="editEnablePenalty" 
+                  v-model="editingHabit.enablePenalty" 
+                  type="checkbox"
+                />
+                <label for="editEnablePenalty">启用未完成惩罚</label>
+              </div>
+            </div>
+            
+            <div class="form-group" v-if="editingHabit.enablePenalty">
+              <label for="editPenaltyPoints">惩罚点数（未完成时扣除）</label>
+              <input 
+                id="editPenaltyPoints" 
+                v-model.number="editingHabit.penaltyPoints" 
+                type="number" 
+                min="1"
+                required
+              />
+            </div>
+          </div>
+          
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">保存</button>
             <button type="button" class="btn btn-secondary" @click="closeEditDialog">取消</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    <!-- 手动执行惩罚对话框 -->
+    <div v-if="showPenaltyDialog" class="edit-dialog-overlay">
+      <div class="edit-dialog">
+        <h2>手动执行惩罚</h2>
+        <form @submit.prevent="confirmApplyPenalty" class="habit-form">
+          <div class="form-group">
+            <label for="penaltyDate">选择日期</label>
+            <input 
+              id="penaltyDate" 
+              v-model="penaltyDate" 
+              type="date"
+              :max="today"
+              required
+            />
+          </div>
+          
+          <p class="penalty-warning">
+            注意：将为习惯【{{ penaltyHabit?.name }}】在选定日期执行惩罚，扣除 {{ penaltyHabit?.penaltyPoints }} 计划点。
+            <br>
+            此操作不可撤销，请确认该日期确实未完成习惯。
+          </p>
+          
+          <div class="form-actions">
+            <button type="submit" class="btn btn-danger">确认执行惩罚</button>
+            <button type="button" class="btn btn-secondary" @click="closePenaltyDialog">取消</button>
           </div>
         </form>
       </div>
@@ -269,11 +365,18 @@ export default {
         consecutiveDaysThreshold1: 3,
         bonusPoints1: 10,
         consecutiveDaysThreshold2: 7,
-        bonusPoints2: 30
+        bonusPoints2: 30,
+        enablePenalty: false,
+        penaltyPoints: 10
       },
       currentMonths: {},
       showEditDialog: false,
-      editingHabit: null
+      editingHabit: null,
+      // 新增惩罚相关数据
+      showPenaltyDialog: false,
+      penaltyHabit: null,
+      penaltyDate: null,
+      today: new Date().toISOString().split('T')[0]
     };
   },
   created() {
@@ -324,7 +427,9 @@ export default {
         consecutiveDaysThreshold1: 3,
         bonusPoints1: 10,
         consecutiveDaysThreshold2: 7,
-        bonusPoints2: 30
+        bonusPoints2: 30,
+        enablePenalty: false,
+        penaltyPoints: 10
       };
     },
     
@@ -564,6 +669,43 @@ export default {
       }
       
       return longestStreak;
+    },
+    
+    // 打开惩罚对话框
+    applyPenaltyForDate(habit) {
+      this.penaltyHabit = habit;
+      this.penaltyDate = this.today;
+      this.showPenaltyDialog = true;
+    },
+    
+    // 关闭惩罚对话框
+    closePenaltyDialog() {
+      this.showPenaltyDialog = false;
+      this.penaltyHabit = null;
+      this.penaltyDate = null;
+    },
+    
+    // 确认执行惩罚
+    async confirmApplyPenalty() {
+      if (!this.penaltyHabit || !this.penaltyDate) {
+        return;
+      }
+      
+      try {
+        const response = await axios.post(
+          `/api/habits/${this.penaltyHabit.id}/apply-penalty?date=${this.penaltyDate}`
+        );
+        
+        if (response.data.status === 'success') {
+          alert(`惩罚已成功执行，扣除了 ${this.penaltyHabit.penaltyPoints} 计划点`);
+          this.closePenaltyDialog();
+        } else {
+          alert(`执行惩罚失败: ${response.data.message}`);
+        }
+      } catch (error) {
+        console.error('执行惩罚失败', error);
+        alert(`执行惩罚失败: ${error.response?.data?.message || error.message}`);
+      }
     }
   }
 };
@@ -668,6 +810,15 @@ export default {
 
 .btn-secondary:hover {
   background-color: #d0d0d0;
+}
+
+.btn-danger {
+  background-color: #f44336;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #d32f2f;
 }
 
 .habits-container {
@@ -776,6 +927,17 @@ export default {
   color: #2196F3;
 }
 
+.reward-item.penalty {
+  border-top: 1px dashed #e0e0e0;
+  padding-top: 5px;
+  margin-top: 5px;
+}
+
+.penalty-value {
+  font-weight: bold;
+  color: #f44336;
+}
+
 .habit-calendar {
   margin-top: 15px;
   background-color: #f5f5f5;
@@ -841,6 +1003,27 @@ export default {
   font-weight: bold;
 }
 
+.calendar-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.penalty-btn {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.penalty-btn:hover {
+  background-color: #d32f2f;
+}
+
 .streak-info {
   display: flex;
   justify-content: space-between;
@@ -889,5 +1072,31 @@ export default {
   color: #2196F3;
   border-bottom: 1px solid #e0e0e0;
   padding-bottom: 10px;
+}
+
+.penalty-section {
+  border-top: 1px dashed #e0e0e0;
+  margin-top: 15px;
+  padding-top: 15px;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-group input[type="checkbox"] {
+  margin-right: 10px;
+  transform: scale(1.2);
+}
+
+.penalty-warning {
+  background-color: #fff8e1;
+  border-left: 4px solid #ffc107;
+  padding: 10px;
+  margin: 15px 0;
+  color: #d32f2f;
+  font-size: 14px;
+  line-height: 1.5;
 }
 </style>

@@ -84,4 +84,25 @@ public class HabitController {
             );
         }
     }
+    
+    /**
+     * 手动执行惩罚
+     */
+    @PostMapping("/{id}/apply-penalty")
+    public ResponseEntity<Map<String, String>> applyPenalty(
+            @PathVariable Long id,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        try {
+            habitService.manualCheckAndApplyPenalty(id, date);
+            return ResponseEntity.ok(Map.of(
+                "message", "惩罚已成功应用", 
+                "status", "success"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "message", e.getMessage(), 
+                "status", "error"
+            ));
+        }
+    }
 }

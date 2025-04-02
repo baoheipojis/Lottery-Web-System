@@ -21,6 +21,12 @@ public class Habit {
     @Column(nullable = false)
     private int baseRewardPoints;
     
+    @Column(name = "penalty_points")
+    private Integer penaltyPoints;
+    
+    @Column(name = "enable_penalty", nullable = false)
+    private boolean enablePenalty = false;
+    
     @Column(name = "consecutive_days_threshold1")
     private Integer consecutiveDaysThreshold1;
     
@@ -69,6 +75,22 @@ public class Habit {
 
     public void setBaseRewardPoints(int baseRewardPoints) {
         this.baseRewardPoints = baseRewardPoints;
+    }
+
+    public Integer getPenaltyPoints() {
+        return penaltyPoints;
+    }
+
+    public void setPenaltyPoints(Integer penaltyPoints) {
+        this.penaltyPoints = penaltyPoints;
+    }
+    
+    public boolean isEnablePenalty() {
+        return enablePenalty;
+    }
+    
+    public void setEnablePenalty(boolean enablePenalty) {
+        this.enablePenalty = enablePenalty;
     }
 
     public Integer getConsecutiveDaysThreshold1() {
