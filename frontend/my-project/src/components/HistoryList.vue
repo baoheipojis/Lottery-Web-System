@@ -1,21 +1,21 @@
 <template>
   <div>
-    <h1>Lottery History</h1>
+    <h1>{{ $t('history.title') }}</h1>
     
-    <div v-if="loading" class="loading">Loading history...</div>
+    <div v-if="loading" class="loading">{{ $t('history.loading') }}</div>
     <div v-else-if="history.length === 0" class="no-records">
-      No lottery records found. Try your luck with the lottery!
+      {{ $t('history.noRecords') }}
     </div>
     <div v-else>
       <table>
         <thead>
           <tr>
-            <th>Time</th>
-            <th>Prize</th>
-            <th>Rarity</th>
-            <th>Result</th>
-            <th>兑现状态</th>
-            <th>操作</th>
+            <th>{{ $t('history.time') }}</th>
+            <th>{{ $t('history.prize') }}</th>
+            <th>{{ $t('history.rarity') }}</th>
+            <th>{{ $t('history.result') }}</th>
+            <th>{{ $t('history.redeemStatus') }}</th>
+            <th>{{ $t('history.operation') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -24,13 +24,13 @@
             <td>{{ item.prizeName }}</td>
             <td>
               {{ item.rarity === 5 
-                ? (item.fiveStarType?.toUpperCase() === 'LIMITED' ? '限定五星' : '普通五星') 
-                : item.rarity + '星' 
+                ? (item.fiveStarType?.toUpperCase() === 'LIMITED' ? $t('prizes.fiveStarLimited') : $t('prizes.fiveStarNormal')) 
+                : item.rarity + $t('prizes.star') 
               }}
             </td>
             <td>{{ item.result }}</td>
             <td :class="{'redeemed': item.redeemed, 'not-redeemed': !item.redeemed}">
-              {{ item.redeemed ? '已兑现' : '未兑现' }}
+              {{ item.redeemed ? $t('history.redeemed') : $t('history.notRedeemed') }}
             </td>
             <td>
               <button 
@@ -38,7 +38,7 @@
                 class="toggle-btn"
                 :class="{'redeem-btn': !item.redeemed, 'un-redeem-btn': item.redeemed}"
               >
-                {{ item.redeemed ? '标记为未兑现' : '标记为已兑现' }}
+                {{ item.redeemed ? $t('history.markAsNotRedeemed') : $t('history.markAsRedeemed') }}
               </button>
             </td>
           </tr>

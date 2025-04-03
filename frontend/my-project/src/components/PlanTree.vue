@@ -1,9 +1,9 @@
 <template>
   <div class="plan-management">
-    <h1>Plan Management</h1>
+    <h1>{{ $t('plans.title') }}</h1>
     
     <div class="plan-tree">
-      <h1>层次化计划管理</h1>
+      <h1>{{ $t('plans.title') }}</h1>
       
       <!-- Message notification -->
       <div v-if="message" :class="['message', messageType]">
@@ -12,58 +12,58 @@
       
       <!-- Add new root plan -->
       <div class="add-plan-form">
-        <h2>添加新计划</h2>
+        <h2>{{ $t('plans.addNewPlan') }}</h2>
         <div class="form-group">
-          <label>标题</label>
-          <input v-model="newPlan.title" type="text" placeholder="输入计划标题" required />
+          <label>{{ $t('plans.planTitle') }}</label>
+          <input v-model="newPlan.title" type="text" :placeholder="$t('plans.inputTitle')" required />
         </div>
         
         <div class="form-group">
-          <label>描述</label>
-          <textarea v-model="newPlan.description" placeholder="输入计划描述"></textarea>
+          <label>{{ $t('plans.description') }}</label>
+          <textarea v-model="newPlan.description" :placeholder="$t('plans.inputDescription')"></textarea>
         </div>
         
         <div class="form-group">
-          <label>预计完成时间</label>
+          <label>{{ $t('plans.expectedCompletion') }}</label>
           <input v-model="newPlan.expectedCompletionTime" type="datetime-local" required />
           <div class="time-buttons">
-            <button type="button" @click="setTimeTodayEnd" class="time-btn">今天结束(23:59)</button>
-            <button type="button" @click="setTimeTomorrowEnd" class="time-btn">明天结束(23:59)</button>
-            <button type="button" @click="setTimeWeekendEnd" class="time-btn">本周末(周日23:59)</button>
-            <button type="button" @click="setTimeMonthEnd" class="time-btn">本月末(23:59)</button>
+            <button type="button" @click="setTimeTodayEnd" class="time-btn">{{ $t('plans.todayEnd') }}</button>
+            <button type="button" @click="setTimeTomorrowEnd" class="time-btn">{{ $t('plans.tomorrowEnd') }}</button>
+            <button type="button" @click="setTimeWeekendEnd" class="time-btn">{{ $t('plans.weekendEnd') }}</button>
+            <button type="button" @click="setTimeMonthEnd" class="time-btn">{{ $t('plans.monthEnd') }}</button>
           </div>
         </div>
         
         <div class="form-group">
-          <label>奖励计划点</label>
+          <label>{{ $t('plans.rewardPoints') }}</label>
           <input v-model.number="newPlan.rewardPoints" type="number" min="1" required />
         </div>
         
         <div class="form-group">
-          <label>重复设置</label>
+          <label>{{ $t('plans.repeatSettings') }}</label>
           <div class="repeat-options">
             <div class="checkbox-group">
               <input type="checkbox" id="repeatable" v-model="newPlan.repeatable" />
-              <label for="repeatable">重复计划</label>
+              <label for="repeatable">{{ $t('plans.repeatSettings') }}</label>
             </div>
             
             <div v-if="newPlan.repeatable" class="repeat-settings">
               <div class="form-group">
-                <label>重复类型</label>
+                <label>{{ $t('plans.repeatType') }}</label>
                 <select v-model="newPlan.repeatType" required>
-                  <option value="DAILY">每天</option>
-                  <option value="WEEKLY">每周</option>
-                  <option value="MONTHLY">每月</option>
+                  <option value="DAILY">{{ $t('plans.daily') }}</option>
+                  <option value="WEEKLY">{{ $t('plans.weekly') }}</option>
+                  <option value="MONTHLY">{{ $t('plans.monthly') }}</option>
                 </select>
               </div>
               
               <div class="form-group">
-                <label>重复间隔</label>
+                <label>{{ $t('plans.repeatInterval') }}</label>
                 <input 
                   v-model.number="newPlan.repeatInterval" 
                   type="number" 
                   min="1" 
-                  placeholder="间隔时间"
+                  :placeholder="$t('plans.intervalUnit')"
                 />
                 <span class="interval-unit">
                   {{ repeatIntervalUnit }}
@@ -71,41 +71,41 @@
               </div>
               
               <div class="form-group">
-                <label>截止日期</label>
+                <label>{{ $t('plans.endDate') }}</label>
                 <input 
                   v-model="newPlan.repeatEndDate" 
                   type="datetime-local" 
-                  placeholder="可选"
+                  :placeholder="$t('plans.optional')"
                 />
               </div>
             </div>
           </div>
         </div>
         
-        <button @click="addPlan" class="add-btn" :disabled="!isFormValid">添加根计划</button>
+        <button @click="addPlan" class="add-btn" :disabled="!isFormValid">{{ $t('plans.addRootPlan') }}</button>
       </div>
       
       <!-- Plan tree view -->
       <div class="plan-tree-container">
         <!-- Date filter section -->
         <div class="date-filter">
-          <div class="filter-label">按日期筛选计划：</div>
+          <div class="filter-label">{{ $t('plans.filterByDate') }}：</div>
           <div class="date-buttons">
-            <button @click="filterByDate('today')" :class="['date-btn', { active: dateFilter === 'today' }]">今天</button>
-            <button @click="filterByDate('tomorrow')" :class="['date-btn', { active: dateFilter === 'tomorrow' }]">明天</button>
-            <button @click="filterByDate('week')" :class="['date-btn', { active: dateFilter === 'week' }]">本周</button>
-            <button @click="filterByDate('next-week')" :class="['date-btn', { active: dateFilter === 'next-week' }]">下周</button>
-            <button @click="filterByDate('month')" :class="['date-btn', { active: dateFilter === 'month' }]">本月</button>
-            <button @click="filterByDate('next-month')" :class="['date-btn', { active: dateFilter === 'next-month' }]">下月</button>
-            <button @click="filterByDate('all')" :class="['date-btn', { active: dateFilter === 'all' }]">全部</button>
+            <button @click="filterByDate('today')" :class="['date-btn', { active: dateFilter === 'today' }]">{{ $t('plans.today') }}</button>
+            <button @click="filterByDate('tomorrow')" :class="['date-btn', { active: dateFilter === 'tomorrow' }]">{{ $t('plans.tomorrow') }}</button>
+            <button @click="filterByDate('week')" :class="['date-btn', { active: dateFilter === 'week' }]">{{ $t('plans.thisWeek') }}</button>
+            <button @click="filterByDate('next-week')" :class="['date-btn', { active: dateFilter === 'next-week' }]">{{ $t('plans.nextWeek') }}</button>
+            <button @click="filterByDate('month')" :class="['date-btn', { active: dateFilter === 'month' }]">{{ $t('plans.thisMonth') }}</button>
+            <button @click="filterByDate('next-month')" :class="['date-btn', { active: dateFilter === 'next-month' }]">{{ $t('plans.nextMonth') }}</button>
+            <button @click="filterByDate('all')" :class="['date-btn', { active: dateFilter === 'all' }]">{{ $t('plans.all') }}</button>
           </div>
           <div class="custom-date">
-            <label>自定义日期：</label>
+            <label>{{ $t('plans.customDate') }}：</label>
             <input type="date" v-model="customDate" @change="filterByDate('custom')" />
           </div>
         </div>
         
-        <h2>计划列表 <span class="hierarchy-hint">(可展开查看子计划)</span></h2>
+        <h2>{{ $t('plans.plansList') }} <span class="hierarchy-hint">{{ $t('plans.hierarchyHint') }}</span></h2>
         
         <!-- Put the reordered filter tabs here -->
         <div class="filter-tabs">
@@ -113,26 +113,26 @@
             :class="['tab-btn', { active: activeTab === 'ongoing' }]" 
             @click="activeTab = 'ongoing'"
           >
-            进行中
+            {{ $t('plans.ongoing') }}
           </button>
           <button 
             :class="['tab-btn', { active: activeTab === 'all' }]" 
             @click="activeTab = 'all'"
           >
-            全部
+            {{ $t('plans.all') }}
           </button>
           <button 
             :class="['tab-btn', { active: activeTab === 'completed' }]" 
             @click="activeTab = 'completed'"
           >
-            已完成
+            {{ $t('plans.completed') }}
           </button>
         </div>
         
         <!-- Plan items -->
         <ul class="plan-list">
           <li v-if="filteredRootPlans.length === 0" class="empty-message">
-            暂无计划
+            {{ $t('plans.noPlan') }}
           </li>
           <template v-for="plan in filteredRootPlans" :key="plan.id">
             <plan-item 
@@ -150,42 +150,42 @@
       <!-- Add child plan modal -->
       <div v-if="showChildModal" class="modal-overlay">
         <div class="modal-content">
-          <h3>添加子计划到: {{ selectedParent?.title }}</h3>
+          <h3>{{ $t('plans.toChildPlan') }}: {{ selectedParent?.title }}</h3>
           
           <div class="form-group">
-            <label>标题</label>
-            <input v-model="newChildPlan.title" type="text" placeholder="输入计划标题" />
+            <label>{{ $t('plans.planTitle') }}</label>
+            <input v-model="newChildPlan.title" type="text" :placeholder="$t('plans.inputTitle')" />
           </div>
           
           <div class="form-group">
-            <label>描述</label>
-            <textarea v-model="newChildPlan.description" placeholder="输入计划描述"></textarea>
+            <label>{{ $t('plans.description') }}</label>
+            <textarea v-model="newChildPlan.description" :placeholder="$t('plans.inputDescription')"></textarea>
           </div>
           
           <div class="form-group">
-            <label>预计完成时间</label>
+            <label>{{ $t('plans.expectedCompletion') }}</label>
             <input v-model="newChildPlan.expectedCompletionTime" type="datetime-local" />
             <div class="time-buttons">
-              <button type="button" @click="setChildTimeTodayEnd" class="time-btn">今天结束(23:59)</button>
-              <button type="button" @click="setChildTimeTomorrowEnd" class="time-btn">明天结束(23:59)</button>
-              <button type="button" @click="setChildTimeWeekendEnd" class="time-btn">本周末(23:59)</button>
-              <button type="button" @click="setChildTimeMonthEnd" class="time-btn">本月末(23:59)</button>
+              <button type="button" @click="setChildTimeTodayEnd" class="time-btn">{{ $t('plans.todayEnd') }}</button>
+              <button type="button" @click="setChildTimeTomorrowEnd" class="time-btn">{{ $t('plans.tomorrowEnd') }}</button>
+              <button type="button" @click="setChildTimeWeekendEnd" class="time-btn">{{ $t('plans.weekendEnd') }}</button>
+              <button type="button" @click="setChildTimeMonthEnd" class="time-btn">{{ $t('plans.monthEnd') }}</button>
             </div>
           </div>
           
           <div class="form-group">
-            <label>奖励计划点</label>
+            <label>{{ $t('plans.rewardPoints') }}</label>
             <input v-model.number="newChildPlan.rewardPoints" type="number" min="1" />
           </div>
           
           <div class="modal-actions">
-            <button @click="cancelAddChild" class="cancel-btn">取消</button>
+            <button @click="cancelAddChild" class="cancel-btn">{{ $t('plans.cancel') }}</button>
             <button 
               @click="addChildPlan" 
               class="add-btn"
               :disabled="!isChildFormValid"
             >
-              添加子计划
+              {{ $t('plans.addChildPlan') }}
             </button>
           </div>
         </div>
@@ -245,12 +245,12 @@ export default {
       return this.filterPlansRecursively(this.plans);
     },
     repeatIntervalUnit() {
-      switch (this.newPlan.repeatType) {
-        case 'DAILY': return '天';
-        case 'WEEKLY': return '周';
-        case 'MONTHLY': return '月';
-        default: return '';
-      }
+      const repeatTypeMap = {
+        'DAILY': this.$t('plans.days'),
+        'WEEKLY': this.$t('plans.weeks'),
+        'MONTHLY': this.$t('plans.months')
+      };
+      return repeatTypeMap[this.newPlan.repeatType] || '';
     },
     filteredPlans() {
       if (this.activeTab === 'ongoing') {

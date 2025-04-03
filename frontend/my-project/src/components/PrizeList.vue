@@ -1,14 +1,14 @@
 <template>
   <div>
     <div class="header-section">
-      <h1>All Prizes</h1>
+      <h1>{{ $t('prizes.title') }}</h1>
       
       <!-- Lottery explanation button -->
       <div class="lottery-info-container">
         <button 
           class="info-button" 
           @click="toggleExplanationModal" 
-          title="抽奖说明"
+          :title="$t('prizes.explanation.title')"
         >
           <i class="info-icon">ℹ</i>
         </button>
@@ -18,10 +18,10 @@
     <!-- Draw Card Button -->
     <div class="draw-section">
       <button @click="drawPrize" class="draw-btn" :disabled="isDrawing">
-        {{ isDrawing ? '抽取中...' : '抽 卡' }}
+        {{ isDrawing ? $t('prizes.drawing') : $t('prizes.drawCard') }}
       </button>
       <button @click="drawTenPrizes" class="draw-btn ten-draw" :disabled="isDrawing">
-        {{ isDrawing ? '抽取中...' : '十连抽' }}
+        {{ isDrawing ? $t('prizes.drawing') : $t('prizes.tenDraw') }}
       </button>
     </div>
     
@@ -34,7 +34,7 @@
     <div class="row-toggle">
       <label>
         <input type="checkbox" v-model="showAddRow">
-        显示添加行
+        {{ $t('prizes.showAddRow') }}
       </label>
     </div>
     
@@ -42,12 +42,12 @@
     <table>
       <thead>
         <tr>
-          <th>Prize Name</th>
-          <th>Rarity</th>
-          <th>Description</th>
-          <th>可重复获取</th>
-          <th>启用状态</th>
-          <th>Actions</th>
+          <th>{{ $t('prizes.prizeName') }}</th>
+          <th>{{ $t('prizes.rarity') }}</th>
+          <th>{{ $t('prizes.description') }}</th>
+          <th>{{ $t('prizes.repeatable') }}</th>
+          <th>{{ $t('prizes.status') }}</th>
+          <th>{{ $t('prizes.actions') }}</th>
         </tr>
       </thead>
       <tbody>
@@ -57,7 +57,7 @@
             <input 
               v-model="newPrize.name" 
               type="text" 
-              placeholder="输入奖品名称" 
+              :placeholder="$t('prizes.inputName')" 
               required
             />
           </td>
@@ -66,10 +66,10 @@
               v-model="newPrize.rarity" 
               required
             >
-              <option value="" disabled selected>选择稀有度</option>
-              <option value="3">3星</option>
-              <option value="4">4星</option>
-              <option value="5">5星</option>
+              <option value="" disabled selected>{{ $t('prizes.selectRarity') }}</option>
+              <option value="3">3{{ $t('prizes.star') }}</option>
+              <option value="4">4{{ $t('prizes.star') }}</option>
+              <option value="5">5{{ $t('prizes.star') }}</option>
             </select>
             
             <select 
@@ -77,15 +77,15 @@
               v-model="newPrize.fiveStarType"
               class="five-star-type"
             >
-              <option value="normal">普通</option>
-              <option value="limited">限定</option>
+              <option value="normal">{{ $t('prizes.fiveStarNormal') }}</option>
+              <option value="limited">{{ $t('prizes.fiveStarLimited') }}</option>
             </select>
           </td>
           <td>
             <input 
               v-model="newPrize.description"
               type="text"
-              placeholder="奖品描述"
+              :placeholder="$t('prizes.prizeDescription')"
             />
           </td>
           <td>
@@ -108,7 +108,7 @@
               @click="addPrize" 
               class="add-btn"
               :disabled="!isFormValid"
-            >添加</button>
+            >{{ $t('prizes.addPrize') }}</button>
           </td>
         </tr>
         
@@ -137,25 +137,25 @@
           <td>
             <div v-if="editMode[prize.id]?.rarity">
               <select v-model="editData[prize.id].rarity" class="edit-input">
-                <option value="3">3星</option>
-                <option value="4">4星</option>
-                <option value="5">5星</option>
+                <option value="3">3{{ $t('prizes.star') }}</option>
+                <option value="4">4{{ $t('prizes.star') }}</option>
+                <option value="5">5{{ $t('prizes.star') }}</option>
               </select>
               <select 
                 v-if="editData[prize.id].rarity == 5"
                 v-model="editData[prize.id].fiveStarType"
                 class="five-star-type-edit"
               >
-                <option value="normal">普通</option>
-                <option value="limited">限定</option>
+                <option value="normal">{{ $t('prizes.fiveStarNormal') }}</option>
+                <option value="limited">{{ $t('prizes.fiveStarLimited') }}</option>
               </select>
               <button @click="saveField(prize.id, 'rarity')" class="save-btn">✓</button>
               <button @click="cancelEdit(prize.id, 'rarity')" class="cancel-btn">✗</button>
             </div>
             <div v-else class="cell-with-edit">
               {{ prize.rarity === 5
-                  ? (prize.fiveStarType?.toUpperCase() === 'LIMITED' ? '限定五星' : '普通五星')
-                  : (prize.rarity + '星')
+                  ? (prize.fiveStarType?.toUpperCase() === 'LIMITED' ? $t('prizes.fiveStarLimited') : $t('prizes.fiveStarNormal'))
+                  : (prize.rarity + $t('prizes.star'))
               }}
               <button @click="startEdit(prize, 'rarity')" class="edit-btn">✎</button>
             </div>
@@ -184,7 +184,7 @@
               <button @click="cancelEdit(prize.id, 'isRepeatable')" class="cancel-btn">✗</button>
             </div>
             <div v-else class="cell-with-edit">
-              {{ isRepeatable(prize) ? '是' : '否' }}
+              {{ isRepeatable(prize) ? $t('prizes.repeatableYes') : $t('prizes.repeatableNo') }}
               <button @click="startEdit(prize, 'isRepeatable')" class="edit-btn">✎</button>
             </div>
           </td>
@@ -201,7 +201,7 @@
             </div>
             <div v-else class="cell-with-edit">
               <span :class="{'enabled': prize.enabled, 'disabled': !prize.enabled}">
-                {{ prize.enabled ? '启用' : '禁用' }}
+                {{ prize.enabled ? $t('prizes.enabled') : $t('prizes.disabled') }}
               </span>
               <button @click="startEdit(prize, 'enabled')" class="edit-btn">✎</button>
             </div>
@@ -213,12 +213,12 @@
               class="toggle-status-btn"
               :class="{'enable-btn': !prize.enabled, 'disable-btn': prize.enabled}"
             >
-              {{ prize.enabled ? '禁用' : '启用' }}
+              {{ prize.enabled ? $t('prizes.disable') : $t('prizes.enable') }}
             </button>
             <button 
               @click="confirmDelete(prize)"
               class="delete-btn"
-            >删除</button>
+            >{{ $t('prizes.delete') }}</button>
           </td>
         </tr>
       </tbody>
@@ -229,9 +229,9 @@
       <button 
         @click="toggleAddRow" 
         class="floating-add-btn"
-        title="显示添加行"
+        :title="$t('prizes.showAddRow')"
       >
-        添加奖品
+        {{ $t('prizes.addPrize') }}
       </button>
     </div>
     
@@ -246,7 +246,7 @@
         <button class="close-modal" @click="closeDrawModal">&times;</button>
         
         <div class="modal-header">
-          <h2>恭喜！</h2>
+          <h2>{{ $t('prizes.congratulations') }}</h2>
           <div v-if="isMultiDraw" class="draw-navigation">
             <span>{{ currentDrawIndex + 1 }} / {{ drawnPrizes.length }}</span>
             <div class="nav-buttons">
@@ -260,14 +260,14 @@
           <div class="prize-card" v-if="!isMultiDraw">
             <div class="prize-rarity">
               {{ drawnPrize?.rarity === 5
-                  ? (drawnPrize.fiveStarType?.toUpperCase() === 'LIMITED' ? '限定五星' : '普通五星')
-                  : (drawnPrize?.rarity + '星')
+                  ? (drawnPrize.fiveStarType?.toUpperCase() === 'LIMITED' ? $t('prizes.fiveStarLimited') : $t('prizes.fiveStarNormal'))
+                  : (drawnPrize?.rarity + $t('prizes.star'))
               }}
             </div>
             <div class="prize-name">{{ drawnPrize?.name }}</div>
             <div class="prize-desc">{{ drawnPrize?.description }}</div>
             <div class="prize-repeatable">
-              {{ isRepeatable(drawnPrize) ? '可重复获取' : '不可重复获取' }}
+              {{ isRepeatable(drawnPrize) ? $t('prizes.repeatableYes') : $t('prizes.repeatableNo') }}
             </div>
           </div>
           
@@ -275,32 +275,32 @@
             <div class="prize-card" v-if="currentDrawPrize">
               <div class="prize-rarity">
                 {{ currentDrawPrize?.rarity === 5
-                    ? (currentDrawPrize.fiveStarType?.toUpperCase() === 'LIMITED' ? '限定五星' : '普通五星')
-                    : (currentDrawPrize?.rarity + '星')
+                    ? (currentDrawPrize.fiveStarType?.toUpperCase() === 'LIMITED' ? $t('prizes.fiveStarLimited') : $t('prizes.fiveStarNormal'))
+                    : (currentDrawPrize?.rarity + $t('prizes.star'))
                 }}
               </div>
               <div class="prize-name">{{ currentDrawPrize?.name }}</div>
               <div class="prize-desc">{{ currentDrawPrize?.description }}</div>
               <div class="prize-repeatable">
-                {{ isRepeatable(currentDrawPrize) ? '可重复获取' : '不可重复获取' }}
+                {{ isRepeatable(currentDrawPrize) ? $t('prizes.repeatableYes') : $t('prizes.repeatableNo') }}
               </div>
             </div>
             
             <div class="prize-summary">
-              <div class="summary-title">十连抽结果统计：</div>
+              <div class="summary-title">{{ $t('prizes.tenDrawSummary') }}</div>
               <div class="rarity-counts">
-                <span class="rarity-count rarity-3">3星: {{ countRarity(3) }}</span>
-                <span class="rarity-count rarity-4">4星: {{ countRarity(4) }}</span>
-                <span class="rarity-count rarity-5">5星: {{ countRarity(5) }}</span>
+                <span class="rarity-count rarity-3">3{{ $t('prizes.star') }}: {{ countRarity(3) }}</span>
+                <span class="rarity-count rarity-4">4{{ $t('prizes.star') }}: {{ countRarity(4) }}</span>
+                <span class="rarity-count rarity-5">5{{ $t('prizes.star') }}: {{ countRarity(5) }}</span>
               </div>
             </div>
           </div>
         </div>
         
         <div class="modal-footer">
-          <button @click="closeDrawModal" class="modal-btn">确定</button>
+          <button @click="closeDrawModal" class="modal-btn">{{ $t('prizes.confirm') }}</button>
           <button @click="isMultiDraw ? drawTenPrizes() : drawAgain()" class="modal-btn draw-again-btn">
-            {{ isMultiDraw ? '再十连抽' : '再抽一次' }}
+            {{ isMultiDraw ? $t('prizes.tenDrawAgain') : $t('prizes.drawAgain') }}
           </button>
         </div>
       </div>
@@ -310,21 +310,21 @@
     <div v-if="showExplanation" class="explanation-modal">
       <div class="modal-content">
         <div class="modal-header">
-          <h2>抽奖说明</h2>
+          <h2>{{ $t('prizes.explanation.title') }}</h2>
           <div class="modal-actions">
             <button 
               @click="isSimpleExplanation = true" 
               class="toggle-btn"
               :class="{ active: isSimpleExplanation }"
             >
-              简单版
+              {{ $t('prizes.explanation.simple') }}
             </button>
             <button 
               @click="isSimpleExplanation = false" 
               class="toggle-btn"
               :class="{ active: !isSimpleExplanation }"
             >
-              完整版
+              {{ $t('prizes.explanation.complete') }}
             </button>
             <button class="close-btn" @click="showExplanation = false">×</button>
           </div>
@@ -333,23 +333,23 @@
         <!-- Simple explanation -->
         <div v-if="isSimpleExplanation" class="explanation-content">
           <ol>
-            <li>奖励分为三星、四星、五星，五星又分为限定五星和普通五星。</li>
-            <li>每10抽必出一个四星或以上物品。</li>
-            <li>每90抽必出一个五星物品。</li>
-            <li>若上一个五星不存在或为限定五星，本次五星有50%概率为限定五星，50%概率为普通五星。否则，若上次为普通五星，本次五星必为限定五星。</li>
-            <li>综合概率：四星13%，五星1.6%。</li>
+            <li>{{ $t('prizes.explanation.simple1') }}</li>
+            <li>{{ $t('prizes.explanation.simple2') }}</li>
+            <li>{{ $t('prizes.explanation.simple3') }}</li>
+            <li>{{ $t('prizes.explanation.simple4') }}</li>
+            <li>{{ $t('prizes.explanation.simple5') }}</li>
           </ol>
         </div>
         
         <!-- Complete explanation -->
         <div v-else class="explanation-content">
           <ol start="0">
-            <li>奖励稀有度有三星、四星、普通五星和限定五星四种，稀有度依次上升。</li>
-            <li>四星基础概率为5.1%，如果连续8抽没有四星，第9抽是4星的概率为56.1%。</li>
-            <li>5星基础概率为0.6%，如果连续73抽没有五星，从第74抽起，当前抽奖为五星的概率提升6%，直至抽出五星。</li>
-            <li>保证10抽必出一个四星及以上奖励。如果连续9抽是三星，第10抽必定是4星或5星，如果是5星，那么第11抽必是四星及以上，如果第11抽仍是五星，第12抽必定是四星及以上。以此类推。</li>
-            <li>如果上一个五星是普通五星，本次五星必定为限定五星；如果上次抽出的五星为限定五星或没有上个五星，本次抽出的五星有50%概率为普通五星，50%概率为限定五星。</li>
-            <li>综合概率：四星13%，五星1.6%</li>
+            <li>{{ $t('prizes.explanation.complete1') }}</li>
+            <li>{{ $t('prizes.explanation.complete2') }}</li>
+            <li>{{ $t('prizes.explanation.complete3') }}</li>
+            <li>{{ $t('prizes.explanation.complete4') }}</li>
+            <li>{{ $t('prizes.explanation.complete5') }}</li>
+            <li>{{ $t('prizes.explanation.complete6') }}</li>
           </ol>
         </div>
       </div>
@@ -447,7 +447,7 @@ export default {
           };
           
           // Show success message
-          this.submitMessage = '奖品添加成功！';
+          this.submitMessage = this.$t('prizes.addSuccess');
           this.submitStatus = 'success';
           
           // Clear message after 3 seconds
@@ -457,13 +457,13 @@ export default {
         })
         .catch(error => {
           console.error('Error adding prize:', error);
-          let errorMessage = '添加失败';
+          let errorMessage = this.$t('prizes.addError');
           
           if (error.response && error.response.data) {
             if (error.response.data.errorType === 'VALIDATION_ERROR') {
-              errorMessage = error.response.data.message || '奖品数据验证失败';
+              errorMessage = error.response.data.message || this.$t('prizes.validationError');
             } else {
-              errorMessage = error.response.data.message || '未知错误';
+              errorMessage = error.response.data.message || this.$t('prizes.unknownError');
             }
           }
           
@@ -472,7 +472,7 @@ export default {
         });
     },
     confirmDelete(prize) {
-      if (confirm(`确定要删除奖品 "${prize.name}" 吗？`)) {
+      if (confirm(`${this.$t('prizes.confirmDelete')} "${prize.name}" ${this.$t('prizes.confirmDelete')}?`)) {
         this.deletePrize(prize.id);
       }
     },
@@ -484,7 +484,7 @@ export default {
           this.prizes = this.prizes.filter(prize => prize.id !== id);
           
           // Show success message (use the message from backend if available)
-          this.submitMessage = response.data?.message || '奖品删除成功！';
+          this.submitMessage = response.data?.message || this.$t('prizes.deleteSuccess');
           this.submitStatus = 'success';
           
           // Clear message after 3 seconds
@@ -496,20 +496,20 @@ export default {
           console.error('Error deleting prize:', error);
           
           // Extract more detailed error message if available
-          let errorMessage = '删除失败';
+          let errorMessage = this.$t('prizes.deleteError');
           
           if (error.response) {
             // The server responded with a status code outside of 2xx range
             if (error.response.data && error.response.data.message) {
               errorMessage += ': ' + error.response.data.message;
             } else if (error.response.status === 404) {
-              errorMessage += ': 奖品不存在或已被删除';
+              errorMessage += ': ' + this.$t('prizes.notFound');
             } else {
-              errorMessage += ': 服务器响应错误 (状态码: ' + error.response.status + ')';
+              errorMessage += ': ' + this.$t('prizes.serverError') + ' (' + error.response.status + ')';
             }
           } else if (error.request) {
             // The request was made but no response was received
-            errorMessage += ': 未收到服务器响应，请检查网络连接';
+            errorMessage += ': ' + this.$t('prizes.noResponse');
           } else {
             // Something happened in setting up the request
             errorMessage += ': ' + error.message;
@@ -543,16 +543,16 @@ export default {
         })
         .catch(error => {
           console.error('Error drawing prize:', error);
-          let errorMessage = '抽卡失败';
+          let errorMessage = this.$t('prizes.drawError');
           
           if (error.response && error.response.data) {
             // 处理特定类型的错误
             if (error.response.data.errorType === 'INSUFFICIENT_POINTS') {
-              errorMessage = error.response.data.message || '计划点数不足，无法抽卡';
+              errorMessage = error.response.data.message || this.$t('prizes.insufficientPoints');
             } else if (error.response.data.errorType === 'NO_PRIZE_AVAILABLE') {
-              errorMessage = error.response.data.message || '抽奖池中没有可用的奖品';
+              errorMessage = error.response.data.message || this.$t('prizes.noPrizeAvailable');
             } else {
-              errorMessage = error.response.data.message || '抽卡过程中发生错误';
+              errorMessage = error.response.data.message || this.$t('prizes.drawProcessError');
             }
           }
           
@@ -579,15 +579,15 @@ export default {
           } catch (error) {
             console.error(`Error on draw ${i+1}:`, error);
             // 处理具体的错误类型
-            let errorMessage = '抽卡失败';
+            let errorMessage = this.$t('prizes.drawError');
             
             if (error.response && error.response.data) {
               if (error.response.data.errorType === 'INSUFFICIENT_POINTS') {
-                errorMessage = `第${i+1}次抽卡: ${error.response.data.message || '计划点数不足'}`;
+                errorMessage = `${this.$t('prizes.drawError')} ${i+1}: ${error.response.data.message || this.$t('prizes.insufficientPoints')}`;
               } else if (error.response.data.errorType === 'NO_PRIZE_AVAILABLE') {
-                errorMessage = `第${i+1}次抽卡: ${error.response.data.message || '抽奖池中没有可用的奖品'}`;
+                errorMessage = `${this.$t('prizes.drawError')} ${i+1}: ${error.response.data.message || this.$t('prizes.noPrizeAvailable')}`;
               } else {
-                errorMessage = `第${i+1}次抽卡: ${error.response.data.message || '抽卡过程中发生错误'}`;
+                errorMessage = `${this.$t('prizes.drawError')} ${i+1}: ${error.response.data.message || this.$t('prizes.drawProcessError')}`;
               }
             }
             
@@ -603,7 +603,7 @@ export default {
         }
       } catch (error) {
         console.error('Error drawing 10 prizes:', error);
-        this.submitMessage = '十连抽失败: ' + (error.response?.data?.message || '未知错误');
+        this.submitMessage = this.$t('prizes.tenDrawError') + ': ' + (error.response?.data?.message || this.$t('prizes.unknownError'));
         this.submitStatus = 'error';
       } finally {
         this.isDrawing = false;
@@ -647,18 +647,18 @@ export default {
           body: JSON.stringify(body)
         });
         if (!response.ok) {
-          throw new Error('Update failed');
+          throw new Error(this.$t('prizes.updateFailed'));
         }
         // Handle success
         prize.name = prize.newName;
-        this.submitMessage = '奖品更新成功！';
+        this.submitMessage = this.$t('prizes.updateSuccess');
         this.submitStatus = 'success';
         setTimeout(() => {
           this.submitMessage = '';
         }, 3000);
       } catch (error) {
         console.error('Error updating prize:', error);
-        this.submitMessage = '更新失败: ' + error.message;
+        this.submitMessage = this.$t('prizes.updateError') + ': ' + error.message;
         this.submitStatus = 'error';
         setTimeout(() => {
           this.submitMessage = '';
@@ -714,7 +714,7 @@ export default {
         });
         
         if (!response.ok) {
-          throw new Error('Update failed');
+          throw new Error(this.$t('prizes.updateFailed'));
         }
         
         const updatedPrize = await response.json();
@@ -728,14 +728,14 @@ export default {
         // Turn off edit mode for this field
         this.cancelEdit(prizeId, field);
         
-        this.submitMessage = '奖品更新成功！';
+        this.submitMessage = this.$t('prizes.updateSuccess');
         this.submitStatus = 'success';
         setTimeout(() => {
           this.submitMessage = '';
         }, 3000);
       } catch (error) {
         console.error('Error updating prize:', error);
-        this.submitMessage = '更新失败: ' + error.message;
+        this.submitMessage = this.$t('prizes.updateError') + ': ' + error.message;
         this.submitStatus = 'error';
         setTimeout(() => {
           this.submitMessage = '';
@@ -744,7 +744,7 @@ export default {
     },
     togglePrizeStatus(prize) {
       const newStatus = !prize.enabled;
-      const statusText = newStatus ? '启用' : '禁用';
+      const statusText = newStatus ? this.$t('prizes.enable') : this.$t('prizes.disable');
       
       axios.put(`/api/prizes/${prize.id}/toggle`, { enabled: newStatus })
         .then(response => {
@@ -754,7 +754,7 @@ export default {
             this.prizes[index] = response.data;
           }
           
-          this.submitMessage = `奖品 "${prize.name}" 已${statusText}`;
+          this.submitMessage = `${this.$t('prizes.prize')} "${prize.name}" ${statusText}`;
           this.submitStatus = 'success';
           
           // 3秒后清除消息
@@ -764,7 +764,7 @@ export default {
         })
         .catch(error => {
           console.error(`切换奖品状态失败:`, error);
-          this.submitMessage = `${statusText}奖品失败: ${error.response?.data?.message || '未知错误'}`;
+          this.submitMessage = `${statusText} ${this.$t('prizes.prize')} ${this.$t('prizes.failed')}: ${error.response?.data?.message || this.$t('prizes.unknownError')}`;
           this.submitStatus = 'error';
           
           setTimeout(() => {
@@ -1007,6 +1007,7 @@ h1 {
 .disabled {
   color: #F44336;
   font-weight: bold;
+
 }
 
 .draw-section {

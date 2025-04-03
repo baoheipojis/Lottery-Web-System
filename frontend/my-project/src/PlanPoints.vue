@@ -1,14 +1,14 @@
 <template>
   <div>
-    <h1>Plan Points</h1>
+    <h1>{{ $t('planPoints.title') }}</h1>
     <div class="summary-card">
-      <h2>Current Plan Points: <span class="plan-points-value">{{ currentPlanPoints }}</span></h2>
+      <h2>{{ $t('planPoints.currentPoints') }}: <span class="plan-points-value">{{ currentPlanPoints }}</span></h2>
     </div>
     
     <!-- 操作按钮区域 -->
     <div class="actions-bar">
       <button @click="confirmClearRecords" class="clear-btn" :disabled="planPointsRecords.length === 0">
-        清空计划点记录
+        {{ $t('planPoints.clearRecords') }}
       </button>
     </div>
     
@@ -20,10 +20,10 @@
     <table>
       <thead>
         <tr>
-          <th>Amount Change</th>
-          <th>Timestamp</th>
-          <th>Balance After Operation</th>
-          <th>Description</th>
+          <th>{{ $t('planPoints.amountChange') }}</th>
+          <th>{{ $t('planPoints.timestamp') }}</th>
+          <th>{{ $t('planPoints.balanceAfter') }}</th>
+          <th>{{ $t('planPoints.description') }}</th>
         </tr>
       </thead>
       <tbody>
@@ -33,11 +33,11 @@
           <td>{{ record.amountChange }}</td>
           <td>{{ formatTimestamp(record.timestamp) }}</td>
           <td>{{ record.balanceAfterOperation }}</td>
-          <td>{{ record.description || '无说明' }}</td>
+          <td>{{ record.description || $t('planPoints.noDescription') }}</td>
         </tr>
         <!-- 无数据提示 -->
         <tr v-if="planPointsRecords.length === 0">
-          <td colspan="4" class="empty-message">暂无计划点记录</td>
+          <td colspan="4" class="empty-message">{{ $t('planPoints.noRecords') }}</td>
         </tr>
       </tbody>
     </table>
@@ -57,16 +57,16 @@ export default {
   },
   methods: {
     formatTimestamp(timestamp) {
-      if (!timestamp) return '未知时间';
+      if (!timestamp) return this.$t('planPoints.noTimestamp');
       // 使用中国时区显示时间
-      return new Date(timestamp).toLocaleString('zh-CN', {
+      return new Date(timestamp).toLocaleString(this.$i18n.locale === 'zh' ? 'zh-CN' : 'en-US', {
         timeZone: 'Asia/Shanghai',
         hour12: false
       });
     },
     
     confirmClearRecords() {
-      if (confirm('确定要删除所有计划点记录吗？此操作不可恢复！')) {
+      if (confirm(this.$t('planPoints.confirmClearMessage'))) {
         this.clearAllRecords();
       }
     },
@@ -76,11 +76,11 @@ export default {
         .then(response => response.json())
         .then(data => {
           this.planPointsRecords = [];
-          this.showMessage(data.message || '已清空所有计划点记录', 'success');
+          this.showMessage(data.message || this.$t('planPoints.clearSuccessMessage'), 'success');
         })
         .catch(error => {
           console.error('Error clearing records:', error);
-          this.showMessage('清空记录失败: ' + (error.response?.data?.message || '未知错误'), 'error');
+          this.showMessage(this.$t('planPoints.clearErrorMessage') + ': ' + (error.response?.data?.message || this.$t('planPoints.unknownError')), 'error');
         });
     },
     
@@ -103,6 +103,7 @@ export default {
         });
       } catch (error) {
         console.error('Error fetching plan points:', error);
+        this.showMessage(this.$t('planPoints.fetchErrorMessage'), 'error');
       }
     }
   },
