@@ -3,8 +3,6 @@
     <h1>{{ $t('plans.title') }}</h1>
     
     <div class="plan-tree">
-      <h1>{{ $t('plans.title') }}</h1>
-      
       <!-- Message notification -->
       <div v-if="message" :class="['message', messageType]">
         {{ message }}

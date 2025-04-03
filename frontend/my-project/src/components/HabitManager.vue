@@ -1,13 +1,13 @@
 <template>
   <div class="habit-manager">
-    <h1>习惯管理</h1>
+    <h1>{{ $t('habits.title') }}</h1>
     
     <!-- 创建新习惯表单 -->
     <div class="form-container">
-      <h2>新建习惯</h2>
+      <h2>{{ $t('habits.createNew') }}</h2>
       <form @submit.prevent="createHabit" class="habit-form">
         <div class="form-group">
-          <label for="habitName">习惯名称</label>
+          <label for="habitName">{{ $t('habits.habitName') }}</label>
           <input 
             id="habitName" 
             v-model="newHabit.name" 
@@ -18,7 +18,7 @@
         </div>
         
         <div class="form-group">
-          <label for="habitDescription">描述（可选）</label>
+          <label for="habitDescription">{{ $t('habits.description') }}</label>
           <textarea 
             id="habitDescription"
             v-model="newHabit.description"
@@ -27,7 +27,7 @@
         </div>
         
         <div class="form-group">
-          <label for="baseReward">基础奖励点数</label>
+          <label for="baseReward">{{ $t('habits.baseReward') }}</label>
           <input 
             id="baseReward" 
             v-model.number="newHabit.baseRewardPoints" 
@@ -39,7 +39,7 @@
         
         <div class="form-row">
           <div class="form-group half">
-            <label for="threshold1">连续天数阈值1</label>
+            <label for="threshold1">{{ $t('habits.threshold1') }}</label>
             <input 
               id="threshold1" 
               v-model.number="newHabit.consecutiveDaysThreshold1" 
@@ -50,7 +50,7 @@
           </div>
           
           <div class="form-group half">
-            <label for="bonus1">额外奖励1</label>
+            <label for="bonus1">{{ $t('habits.bonus1') }}</label>
             <input 
               id="bonus1" 
               v-model.number="newHabit.bonusPoints1" 
@@ -63,7 +63,7 @@
         
         <div class="form-row">
           <div class="form-group half">
-            <label for="threshold2">连续天数阈值2</label>
+            <label for="threshold2">{{ $t('habits.threshold2') }}</label>
             <input 
               id="threshold2" 
               v-model.number="newHabit.consecutiveDaysThreshold2" 
@@ -74,7 +74,7 @@
           </div>
           
           <div class="form-group half">
-            <label for="bonus2">额外奖励2</label>
+            <label for="bonus2">{{ $t('habits.bonus2') }}</label>
             <input 
               id="bonus2" 
               v-model.number="newHabit.bonusPoints2" 
@@ -94,12 +94,12 @@
                 v-model="newHabit.enablePenalty" 
                 type="checkbox"
               />
-              <label for="enablePenalty">启用未完成惩罚</label>
+              <label for="enablePenalty">{{ $t('habits.enablePenalty') }}</label>
             </div>
           </div>
           
           <div class="form-group" v-if="newHabit.enablePenalty">
-            <label for="penaltyPoints">惩罚点数（未完成时扣除）</label>
+            <label for="penaltyPoints">{{ $t('habits.penaltyPoints') }}</label>
             <input 
               id="penaltyPoints" 
               v-model.number="newHabit.penaltyPoints" 
@@ -112,50 +112,50 @@
         </div>
         
         <div class="form-actions">
-          <button type="submit" class="btn btn-primary">创建习惯</button>
-          <button type="button" class="btn btn-secondary" @click="resetForm">重置</button>
+          <button type="submit" class="btn btn-primary">{{ $t('habits.create') }}</button>
+          <button type="button" class="btn btn-secondary" @click="resetForm">{{ $t('habits.reset') }}</button>
         </div>
       </form>
     </div>
     
     <!-- 习惯列表 -->
     <div class="habits-container">
-      <h2>我的习惯</h2>
-      <div v-if="loading" class="loading">加载中...</div>
+      <h2>{{ $t('habits.myHabits') }}</h2>
+      <div v-if="loading" class="loading">{{ $t('habits.loading') }}</div>
       <div v-else-if="habits.length === 0" class="no-habits">
-        还没有创建任何习惯。开始创建你的第一个习惯吧！
+        {{ $t('habits.noHabits') }}
       </div>
       <div v-else class="habits-list">
         <div v-for="habit in habits" :key="habit.id" class="habit-card">
           <div class="habit-header">
             <h3>{{ habit.name }}</h3>
             <div class="habit-actions">
-              <button @click="editHabit(habit)" class="action-btn edit-btn">编辑</button>
-              <button @click="deleteHabit(habit.id)" class="action-btn delete-btn">删除</button>
+              <button @click="editHabit(habit)" class="action-btn edit-btn">{{ $t('habits.edit') }}</button>
+              <button @click="deleteHabit(habit.id)" class="action-btn delete-btn">{{ $t('habits.delete') }}</button>
             </div>
           </div>
           
-          <div class="habit-description">{{ habit.description || '无描述' }}</div>
+          <div class="habit-description">{{ habit.description || $t('habits.noDescription') }}</div>
           
           <div class="habit-rewards">
             <div class="reward-item">
-              <span class="reward-label">基础奖励:</span>
-              <span class="reward-value">{{ habit.baseRewardPoints }} 点</span>
+              <span class="reward-label">{{ $t('habits.baseReward') }}:</span>
+              <span class="reward-value">{{ habit.baseRewardPoints }} {{ $t('habits.points') }}</span>
             </div>
             
             <div v-if="habit.consecutiveDaysThreshold1" class="reward-item">
-              <span class="reward-label">连续 {{ habit.consecutiveDaysThreshold1 }} 天:</span>
-              <span class="reward-value">+{{ habit.bonusPoints1 }} 点</span>
+              <span class="reward-label">{{ $t('habits.consecutiveDays', { days: habit.consecutiveDaysThreshold1 }) }}:</span>
+              <span class="reward-value">+{{ habit.bonusPoints1 }} {{ $t('habits.points') }}</span>
             </div>
             
             <div v-if="habit.consecutiveDaysThreshold2" class="reward-item">
-              <span class="reward-label">连续 {{ habit.consecutiveDaysThreshold2 }} 天:</span>
-              <span class="reward-value">+{{ habit.bonusPoints2 }} 点</span>
+              <span class="reward-label">{{ $t('habits.consecutiveDays', { days: habit.consecutiveDaysThreshold2 }) }}:</span>
+              <span class="reward-value">+{{ habit.bonusPoints2 }} {{ $t('habits.points') }}</span>
             </div>
             
             <div v-if="habit.enablePenalty" class="reward-item penalty">
-              <span class="reward-label">未完成惩罚:</span>
-              <span class="penalty-value">-{{ habit.penaltyPoints }} 点</span>
+              <span class="reward-label">{{ $t('habits.penalty') }}:</span>
+              <span class="penalty-value">-{{ habit.penaltyPoints }} {{ $t('habits.points') }}</span>
             </div>
           </div>
           
@@ -167,7 +167,7 @@
             </div>
             
             <div class="calendar-grid">
-              <div v-for="day in ['日', '一', '二', '三', '四', '五', '六']" 
+              <div v-for="day in $t('habits.weekDays')" 
                   :key="day" 
                   class="calendar-day-header">
                 {{ day }}
@@ -191,16 +191,16 @@
               <button 
                 @click="applyPenaltyForDate(habit)" 
                 class="penalty-btn"
-                title="手动执行未完成惩罚"
+                title="{{ $t('habits.manualPenalty') }}"
               >
-                手动执行惩罚
+                {{ $t('habits.manualPenalty') }}
               </button>
             </div>
           </div>
           
           <div class="streak-info">
-            <div class="current-streak">当前连续: <span>{{ getCurrentStreak(habit) }} 天</span></div>
-            <div class="longest-streak">最长连续: <span>{{ getLongestStreak(habit) }} 天</span></div>
+            <div class="current-streak">{{ $t('habits.currentStreak') }}: <span>{{ getCurrentStreak(habit) }} {{ $t('habits.days') }}</span></div>
+            <div class="longest-streak">{{ $t('habits.longestStreak') }}: <span>{{ getLongestStreak(habit) }} {{ $t('habits.days') }}</span></div>
           </div>
         </div>
       </div>
@@ -209,10 +209,10 @@
     <!-- 编辑习惯对话框 -->
     <div v-if="showEditDialog" class="edit-dialog-overlay">
       <div class="edit-dialog">
-        <h2>编辑习惯</h2>
+        <h2>{{ $t('habits.editHabit') }}</h2>
         <form @submit.prevent="updateHabit" class="habit-form">
           <div class="form-group">
-            <label for="editName">习惯名称</label>
+            <label for="editName">{{ $t('habits.habitName') }}</label>
             <input 
               id="editName" 
               v-model="editingHabit.name" 
@@ -222,7 +222,7 @@
           </div>
           
           <div class="form-group">
-            <label for="editDescription">描述（可选）</label>
+            <label for="editDescription">{{ $t('habits.description') }}</label>
             <textarea 
               id="editDescription"
               v-model="editingHabit.description"
@@ -230,7 +230,7 @@
           </div>
           
           <div class="form-group">
-            <label for="editBaseReward">基础奖励点数</label>
+            <label for="editBaseReward">{{ $t('habits.baseReward') }}</label>
             <input 
               id="editBaseReward" 
               v-model.number="editingHabit.baseRewardPoints" 
@@ -242,7 +242,7 @@
           
           <div class="form-row">
             <div class="form-group half">
-              <label for="editThreshold1">连续天数阈值1</label>
+              <label for="editThreshold1">{{ $t('habits.threshold1') }}</label>
               <input 
                 id="editThreshold1" 
                 v-model.number="editingHabit.consecutiveDaysThreshold1" 
@@ -252,7 +252,7 @@
             </div>
             
             <div class="form-group half">
-              <label for="editBonus1">额外奖励1</label>
+              <label for="editBonus1">{{ $t('habits.bonus1') }}</label>
               <input 
                 id="editBonus1" 
                 v-model.number="editingHabit.bonusPoints1" 
@@ -264,7 +264,7 @@
           
           <div class="form-row">
             <div class="form-group half">
-              <label for="editThreshold2">连续天数阈值2</label>
+              <label for="editThreshold2">{{ $t('habits.threshold2') }}</label>
               <input 
                 id="editThreshold2" 
                 v-model.number="editingHabit.consecutiveDaysThreshold2" 
@@ -274,7 +274,7 @@
             </div>
             
             <div class="form-group half">
-              <label for="editBonus2">额外奖励2</label>
+              <label for="editBonus2">{{ $t('habits.bonus2') }}</label>
               <input 
                 id="editBonus2" 
                 v-model.number="editingHabit.bonusPoints2" 
@@ -293,12 +293,12 @@
                   v-model="editingHabit.enablePenalty" 
                   type="checkbox"
                 />
-                <label for="editEnablePenalty">启用未完成惩罚</label>
+                <label for="editEnablePenalty">{{ $t('habits.enablePenalty') }}</label>
               </div>
             </div>
             
             <div class="form-group" v-if="editingHabit.enablePenalty">
-              <label for="editPenaltyPoints">惩罚点数（未完成时扣除）</label>
+              <label for="editPenaltyPoints">{{ $t('habits.penaltyPoints') }}</label>
               <input 
                 id="editPenaltyPoints" 
                 v-model.number="editingHabit.penaltyPoints" 
@@ -310,8 +310,8 @@
           </div>
           
           <div class="form-actions">
-            <button type="submit" class="btn btn-primary">保存</button>
-            <button type="button" class="btn btn-secondary" @click="closeEditDialog">取消</button>
+            <button type="submit" class="btn btn-primary">{{ $t('habits.save') }}</button>
+            <button type="button" class="btn btn-secondary" @click="closeEditDialog">{{ $t('habits.cancel') }}</button>
           </div>
         </form>
       </div>
@@ -320,10 +320,10 @@
     <!-- 手动执行惩罚对话框 -->
     <div v-if="showPenaltyDialog" class="edit-dialog-overlay">
       <div class="edit-dialog">
-        <h2>手动执行惩罚</h2>
+        <h2>{{ $t('habits.manualPenalty') }}</h2>
         <form @submit.prevent="confirmApplyPenalty" class="habit-form">
           <div class="form-group">
-            <label for="penaltyDate">选择日期</label>
+            <label for="penaltyDate">{{ $t('habits.selectDate') }}</label>
             <input 
               id="penaltyDate" 
               v-model="penaltyDate" 
@@ -334,14 +334,12 @@
           </div>
           
           <p class="penalty-warning">
-            注意：将为习惯【{{ penaltyHabit?.name }}】在选定日期执行惩罚，扣除 {{ penaltyHabit?.penaltyPoints }} 计划点。
-            <br>
-            此操作不可撤销，请确认该日期确实未完成习惯。
+            {{ $t('habits.penaltyWarning', { habitName: penaltyHabit?.name, penaltyPoints: penaltyHabit?.penaltyPoints }) }}
           </p>
           
           <div class="form-actions">
-            <button type="submit" class="btn btn-danger">确认执行惩罚</button>
-            <button type="button" class="btn btn-secondary" @click="closePenaltyDialog">取消</button>
+            <button type="submit" class="btn btn-danger">{{ $t('habits.confirmPenalty') }}</button>
+            <button type="button" class="btn btn-secondary" @click="closePenaltyDialog">{{ $t('habits.cancel') }}</button>
           </div>
         </form>
       </div>
@@ -372,7 +370,6 @@ export default {
       currentMonths: {},
       showEditDialog: false,
       editingHabit: null,
-      // 新增惩罚相关数据
       showPenaltyDialog: false,
       penaltyHabit: null,
       penaltyDate: null,
@@ -389,14 +386,13 @@ export default {
         const response = await axios.get('/api/habits');
         this.habits = response.data;
         
-        // 初始化每个习惯的当前月份为当前日期
         const monthsObj = {};
         this.habits.forEach(habit => {
           monthsObj[habit.id] = new Date();
         });
-        this.currentMonths = monthsObj; // 使用新对象更新
+        this.currentMonths = monthsObj;
       } catch (error) {
-        console.error('加载习惯失败', error);
+        console.error(this.$t('habits.fetchError'), error);
       } finally {
         this.loading = false;
       }
@@ -407,7 +403,6 @@ export default {
         const response = await axios.post('/api/habits', this.newHabit);
         this.habits.push(response.data);
         
-        // 创建新对象来更新
         this.currentMonths = { 
           ...this.currentMonths, 
           [response.data.id]: new Date() 
@@ -415,7 +410,7 @@ export default {
         
         this.resetForm();
       } catch (error) {
-        console.error('创建习惯失败', error);
+        console.error(this.$t('habits.createError'), error);
       }
     },
     
@@ -434,7 +429,7 @@ export default {
     },
     
     async deleteHabit(id) {
-      if (!confirm('确定要删除这个习惯吗？所有相关记录都将被永久删除。')) {
+      if (!confirm(this.$t('habits.deleteConfirm'))) {
         return;
       }
       
@@ -442,7 +437,7 @@ export default {
         await axios.delete(`/api/habits/${id}`);
         this.habits = this.habits.filter(h => h.id !== id);
       } catch (error) {
-        console.error('删除习惯失败', error);
+        console.error(this.$t('habits.deleteError'), error);
       }
     },
     
@@ -465,19 +460,16 @@ export default {
         }
         this.closeEditDialog();
       } catch (error) {
-        console.error('更新习惯失败', error);
+        console.error(this.$t('habits.updateError'), error);
       }
     },
     
-    // 日历相关方法
     formatYearMonth(date) {
-      // 添加空值检查
       if (!date) return '';
       return date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long' });
     },
     
     changeMonth(habitId, delta) {
-      // 添加空值检查
       if (!this.currentMonths[habitId]) {
         this.currentMonths[habitId] = new Date();
       }
@@ -485,14 +477,12 @@ export default {
       const currentMonth = new Date(this.currentMonths[habitId]);
       currentMonth.setMonth(currentMonth.getMonth() + delta);
       
-      // 创建新对象来更新
       const updatedMonths = { ...this.currentMonths };
       updatedMonths[habitId] = currentMonth;
       this.currentMonths = updatedMonths;
     },
     
     getCalendarDates(habitId) {
-      // 添加空值检查
       if (!this.currentMonths[habitId]) {
         this.currentMonths = { 
           ...this.currentMonths, 
@@ -504,34 +494,23 @@ export default {
       const year = month.getFullYear();
       const monthIndex = month.getMonth();
       
-      // 获取当月第一天
       const firstDay = new Date(year, monthIndex, 1);
-      
-      // 获取当月最后一天
       const lastDay = new Date(year, monthIndex + 1, 0);
-      
-      // 获取第一天是星期几 (0 = 周日, 1 = 周一, ...)
       const firstDayOfWeek = firstDay.getDay();
-      
-      // 上个月需要显示的天数
       const daysFromPrevMonth = firstDayOfWeek;
       
-      // 创建日历网格的日期数组 (6周，每周7天)
       const dates = [];
       
-      // 添加上个月的日期
       for (let i = daysFromPrevMonth - 1; i >= 0; i--) {
         const prevDate = new Date(year, monthIndex, -i);
         dates.push(prevDate);
       }
       
-      // 添加当月的日期
       for (let i = 1; i <= lastDay.getDate(); i++) {
         const currentDate = new Date(year, monthIndex, i);
         dates.push(currentDate);
       }
       
-      // 添加下个月的日期，直到填满6*7=42个格子
       const remainingDays = 42 - dates.length;
       for (let i = 1; i <= remainingDays; i++) {
         const nextDate = new Date(year, monthIndex + 1, i);
@@ -551,7 +530,6 @@ export default {
         return false;
       }
       
-      // 修复日期比较逻辑 - 比较年月日而不是完整的日期字符串
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
@@ -574,63 +552,50 @@ export default {
     },
     
     async toggleHabitCompletion(habit, date) {
-      // 不允许标记未来日期
       if (this.isFutureDate(date)) {
         return;
       }
       
-      // 优化日期格式化 - 确保日期组件使用本地值，而不是UTC
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
-      const dateString = `${year}-${month}-${day}`; // 格式为 YYYY-MM-DD
-      
-      console.log('点击日期:', date);
-      console.log('格式化后发送的日期字符串:', dateString);
+      const dateString = `${year}-${month}-${day}`;
       
       try {
         if (this.isDateCompleted(habit, date)) {
-          // 取消标记完成
           await axios.post(`/api/habits/${habit.id}/uncomplete?date=${dateString}`);
         } else {
-          // 标记为完成
           await axios.post(`/api/habits/${habit.id}/complete?date=${dateString}`);
         }
-        // 重新加载习惯数据
         this.fetchHabits();
       } catch (error) {
-        console.error('更新习惯完成状态失败', error);
+        console.error(this.$t('habits.toggleError'), error);
       }
     },
     
-    // 计算连续天数信息
     getCurrentStreak(habit) {
       if (!habit.completionDates || habit.completionDates.length === 0) {
         return 0;
       }
       
-      // 将完成日期转换为 Date 对象数组并按日期排序
       const dates = habit.completionDates
         .map(d => new Date(d))
-        .sort((a, b) => b - a); // 降序排序
+        .sort((a, b) => b - a);
       
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
-      // 检查最近的完成日期是否是今天或昨天
       const mostRecentDate = dates[0];
       mostRecentDate.setHours(0, 0, 0, 0);
       
       const yesterday = new Date(today);
       yesterday.setDate(today.getDate() - 1);
       
-      // 如果最近的完成日期不是今天或昨天，没有当前连续记录
       if (!(mostRecentDate.getTime() === today.getTime() || 
             mostRecentDate.getTime() === yesterday.getTime())) {
         return 0;
       }
       
-      // 计算当前连续天数
       let streak = 1;
       let currentDate = new Date(mostRecentDate);
       
@@ -638,7 +603,6 @@ export default {
         const prevDate = new Date(currentDate);
         prevDate.setDate(prevDate.getDate() - 1);
         
-        // 查找是否有前一天的记录
         const matchingDate = dates[i];
         matchingDate.setHours(0, 0, 0, 0);
         
@@ -658,10 +622,9 @@ export default {
         return 0;
       }
       
-      // 将完成日期转换为 Date 对象并排序
       const sortedDates = habit.completionDates
         .map(d => new Date(d))
-        .sort((a, b) => a - b); // 升序排序
+        .sort((a, b) => a - b);
       
       let longestStreak = 1;
       let currentStreak = 1;
@@ -670,14 +633,12 @@ export default {
         const currentDate = sortedDates[i];
         const prevDate = sortedDates[i - 1];
         
-        // 检查日期是否连续
         const diffTime = currentDate.getTime() - prevDate.getTime();
         const diffDays = diffTime / (1000 * 3600 * 24);
         
         if (Math.round(diffDays) === 1) {
           currentStreak++;
         } else if (Math.round(diffDays) > 1) {
-          // 重置当前连续计数
           currentStreak = 1;
         }
         
@@ -687,21 +648,18 @@ export default {
       return longestStreak;
     },
     
-    // 打开惩罚对话框
     applyPenaltyForDate(habit) {
       this.penaltyHabit = habit;
       this.penaltyDate = this.today;
       this.showPenaltyDialog = true;
     },
     
-    // 关闭惩罚对话框
     closePenaltyDialog() {
       this.showPenaltyDialog = false;
       this.penaltyHabit = null;
       this.penaltyDate = null;
     },
     
-    // 确认执行惩罚
     async confirmApplyPenalty() {
       if (!this.penaltyHabit || !this.penaltyDate) {
         return;
@@ -713,14 +671,14 @@ export default {
         );
         
         if (response.data.status === 'success') {
-          alert(`惩罚已成功执行，扣除了 ${this.penaltyHabit.penaltyPoints} 计划点`);
+          alert(this.$t('habits.penaltySuccess', { points: this.penaltyHabit.penaltyPoints }));
           this.closePenaltyDialog();
         } else {
-          alert(`执行惩罚失败: ${response.data.message}`);
+          alert(this.$t('habits.penaltyFailure', { message: response.data.message }));
         }
       } catch (error) {
-        console.error('执行惩罚失败', error);
-        alert(`执行惩罚失败: ${error.response?.data?.message || error.message}`);
+        console.error(this.$t('habits.penaltyError'), error);
+        alert(this.$t('habits.penaltyError', { message: error.response?.data?.message || error.message }));
       }
     }
   }
