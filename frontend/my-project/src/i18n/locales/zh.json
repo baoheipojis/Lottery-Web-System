@@ -10,7 +10,7 @@
     "history": "历史",
     "habits": "习惯",
     "plans": "计划",
-    "planPoints": "计划积分"
+    "planPoints": "计划点"
   },
   "prizes": {
     "title": "所有奖品",
@@ -76,7 +76,7 @@
     "serverError": "服务器错误（状态码：",
     "noResponse": "未收到服务器响应，请检查网络",
     "drawError": "抽奖失败",
-    "insufficientPoints": "计划积分不足，无法抽奖",
+    "insufficientPoints": "计划点不足，无法抽奖",
     "noPrizeAvailable": "池中无可抽奖品",
     "drawProcessError": "抽卡过程出现错误",
     "tenDrawError": "十连抽失败",
@@ -103,20 +103,20 @@
     "noRecords": "尚无抽卡记录，去试试抽卡吧！"
   },
   "planPoints": {
-    "title": "计划积分",
-    "currentPoints": "当前计划积分",
-    "clearRecords": "清空计划积分记录",
-    "amountChange": "积分变化",
+    "title": "计划点",
+    "currentPoints": "当前计划点",
+    "clearRecords": "清空计划点记录",
+    "amountChange": "计划点变化",
     "timestamp": "时间戳",
     "balanceAfter": "操作后余额",
     "description": "描述",
     "noDescription": "无描述",
-    "noRecords": "无计划积分记录",
+    "noRecords": "无计划点记录",
     "noTimestamp": "未知时间",
-    "confirmClearMessage": "确定要删除所有计划积分记录吗？此操作不可恢复！",
-    "clearSuccessMessage": "所有计划积分记录已清空",
+    "confirmClearMessage": "确定要删除所有计划点记录吗？此操作不可恢复！",
+    "clearSuccessMessage": "所有计划点记录已清空",
     "clearErrorMessage": "清空记录失败",
-    "fetchErrorMessage": "获取计划积分失败",
+    "fetchErrorMessage": "获取计划点失败",
     "unknownError": "未知错误"
   },
   "habits": {
@@ -124,13 +124,13 @@
     "createNew": "创建新习惯",
     "habitName": "习惯名称",
     "description": "描述（可选）",
-    "baseReward": "基础奖励积分",
+    "baseReward": "基础奖励计划点",
     "threshold1": "连续天数阈值1",
     "bonus1": "奖励1",
     "threshold2": "连续天数阈值2",
     "bonus2": "奖励2",
     "enablePenalty": "启用惩罚",
-    "penaltyPoints": "惩罚积分",
+    "penaltyPoints": "惩罚点数",
     "create": "创建习惯",
     "reset": "重置",
     "myHabits": "我的习惯",
@@ -153,7 +153,7 @@
     "dayNames": ["日", "一", "二", "三", "四", "五", "六"],
     "weekDays": ["日", "一", "二", "三", "四", "五", "六"],
     "consecutiveDaysFormat": "连续 {days} 天",
-    "points": "计划积分",
+    "points": "计划点",
     "manualPenalty": "手动执行惩罚",
     "fetchError": "获取习惯失败",
     "createError": "创建习惯失败",
@@ -168,7 +168,7 @@
   },
   "plans": {
     "title": "计划管理",
-    "points": "积分",
+    "points": "计划点",
     "expectedCompletion": "预期完成时间",
     "repeatInfo": "重复",
     "complete": "完成",
@@ -181,7 +181,7 @@
     "cancel": "取消",
     "confirmDelete": "确定要删除此计划吗？此操作也会删除所有子计划。",
     "noDate": "未设置日期",
-    "rewardPoints": "奖励积分",
+    "rewardPoints": "奖励点数",
     "description": "描述",
     "addNewPlan": "添加新计划",
     "planTitle": "计划标题",
@@ -216,5 +216,10 @@
     "intervalUnit": "间隔单位",
     "endDate": "结束日期",
     "optional": "可选"
+  },
+  "pagination": {
+    "previous": "上一页",
+    "next": "下一页",
+    "pageInfo": "第 {current} 页，共 {total} 页"
   }
 }

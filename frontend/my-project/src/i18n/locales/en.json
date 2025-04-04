@@ -205,5 +205,10 @@
     "intervalUnit": "interval time",
     "endDate": "End Date",
     "optional": "optional"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "pageInfo": "Page {current} of {total}"
   }
 }

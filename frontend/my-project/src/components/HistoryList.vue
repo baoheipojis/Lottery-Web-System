@@ -19,7 +19,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in history" :key="item.id" :class="getRowClass(item)">
+          <tr v-for="item in paginatedHistory" :key="item.id" :class="getRowClass(item)">
             <td>{{ formatDate(item.drawTime) }}</td>
             <td>{{ item.prizeName }}</td>
             <td>
@@ -44,6 +44,39 @@
           </tr>
         </tbody>
       </table>
+      
+      <!-- Pagination controls -->
+      <div class="pagination">
+        <button 
+          @click="goToPage(currentPage - 1)" 
+          :disabled="currentPage === 1"
+          class="page-btn"
+        >
+          {{ $t('pagination.previous') || 'Previous' }}
+        </button>
+        
+        <!-- Page numbers -->
+        <div class="page-numbers">
+          <template v-for="(item, index) in displayedPages" :key="index">
+            <span v-if="item === '...'" class="ellipsis">...</span>
+            <button 
+              v-else
+              @click="goToPage(item)" 
+              :class="['page-number', { active: currentPage === item }]"
+            >
+              {{ item }}
+            </button>
+          </template>
+        </div>
+        
+        <button 
+          @click="goToPage(currentPage + 1)" 
+          :disabled="currentPage === totalPages"
+          class="page-btn"
+        >
+          {{ $t('pagination.next') || 'Next' }}
+        </button>
+      </div>
     </div>
     
     <!-- Status message -->
@@ -62,8 +95,69 @@ export default {
       history: [],
       loading: true,
       message: '',
-      messageType: ''
+      messageType: '',
+      currentPage: 1,
+      itemsPerPage: 10
     };
+  },
+  computed: {
+    totalPages() {
+      return Math.ceil(this.history.length / this.itemsPerPage);
+    },
+    paginatedHistory() {
+      const start = (this.currentPage - 1) * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.history.slice(start, end);
+    },
+    displayedPages() {
+      // Generate array of page numbers to display with ellipsis
+      let result = [];
+      
+      if (this.totalPages <= 7) {
+        // If 7 or fewer pages, show all
+        for (let i = 1; i <= this.totalPages; i++) {
+          result.push(i);
+        }
+      } else {
+        // Always include first page
+        result.push(1);
+        
+        // Add ellipsis if needed
+        if (this.currentPage > 3) {
+          result.push('...');
+        }
+        
+        // Calculate range of pages around current page
+        let startPage = Math.max(2, this.currentPage - 1);
+        let endPage = Math.min(this.totalPages - 1, this.currentPage + 1);
+        
+        // Adjust for edge cases
+        if (this.currentPage < 4) {
+          startPage = 2;
+          endPage = Math.min(5, this.totalPages - 1);
+        } else if (this.currentPage > this.totalPages - 3) {
+          startPage = Math.max(this.totalPages - 4, 2);
+          endPage = this.totalPages - 1;
+        }
+        
+        // Add the range of pages
+        for (let i = startPage; i <= endPage; i++) {
+          result.push(i);
+        }
+        
+        // Add ellipsis if needed
+        if (endPage < this.totalPages - 1) {
+          result.push('...');
+        }
+        
+        // Add last page if not already included
+        if (this.totalPages > 1) {
+          result.push(this.totalPages);
+        }
+      }
+      
+      return result;
+    }
   },
   created() {
     this.fetchHistory();
@@ -131,6 +225,11 @@ export default {
         this.message = '';
         this.messageType = '';
       }, 3000);
+    },
+    goToPage(page) {
+      if (page >= 1 && page <= this.totalPages) {
+        this.currentPage = page;
+      }
     }
   }
 };
@@ -255,5 +354,78 @@ th {
 @keyframes fadeOut {
   from { opacity: 1; transform: translateY(0); }
   to { opacity: 0; transform: translateY(20px); }
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+  gap: 15px;
+}
+
+.page-numbers {
+  display: flex;
+  gap: 5px;
+}
+
+.page-number {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ddd;
+  background-color: #f9f9f9;
+  color: #333;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.page-number:hover {
+  background-color: #e9e9e9;
+}
+
+.page-number.active {
+  background-color: #4CAF50;
+  color: white;
+  border-color: #4CAF50;
+}
+
+.page-btn {
+  padding: 8px 15px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.page-btn:hover:not(:disabled) {
+  background-color: #388E3C;
+}
+
+.page-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.page-info {
+  font-size: 16px;
+  color: #333;
+}
+
+.ellipsis {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #666;
 }
 </style>
