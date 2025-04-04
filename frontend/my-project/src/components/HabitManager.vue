@@ -142,17 +142,14 @@
               <span class="reward-label">{{ $t('habits.baseReward') }}:</span>
               <span class="reward-value">{{ habit.baseRewardPoints }} {{ $t('habits.points') }}</span>
             </div>
-            
             <div v-if="habit.consecutiveDaysThreshold1" class="reward-item">
-              <span class="reward-label">{{ $t('habits.consecutiveDays', { days: habit.consecutiveDaysThreshold1 }) }}:</span>
+              <span class="reward-label">{{ $t('habits.consecutiveDaysFormat', { days: habit.consecutiveDaysThreshold1 }) }}:</span>
               <span class="reward-value">+{{ habit.bonusPoints1 }} {{ $t('habits.points') }}</span>
             </div>
-            
             <div v-if="habit.consecutiveDaysThreshold2" class="reward-item">
-              <span class="reward-label">{{ $t('habits.consecutiveDays', { days: habit.consecutiveDaysThreshold2 }) }}:</span>
+              <span class="reward-label">{{ $t('habits.consecutiveDaysFormat', { days: habit.consecutiveDaysThreshold2 }) }}:</span>
               <span class="reward-value">+{{ habit.bonusPoints2 }} {{ $t('habits.points') }}</span>
             </div>
-            
             <div v-if="habit.enablePenalty" class="reward-item penalty">
               <span class="reward-label">{{ $t('habits.penalty') }}:</span>
               <span class="penalty-value">-{{ habit.penaltyPoints }} {{ $t('habits.points') }}</span>
@@ -167,7 +164,7 @@
             </div>
             
             <div class="calendar-grid">
-              <div v-for="day in $t('habits.weekDays')" 
+              <div v-for="day in weekDays" 
                   :key="day" 
                   class="calendar-day-header">
                 {{ day }}
@@ -378,6 +375,20 @@ export default {
   },
   created() {
     this.fetchHabits();
+    console.log('Debug: current locale =>', this.$i18n && this.$i18n.locale);
+    console.log('Debug: i18n messages =>', this.$i18n && this.$i18n.messages);
+    console.log('Debug: $root i18n =>', this.$root.$options.i18n);
+  },
+  computed: {
+    weekDays() {
+      const messages = this.$i18n && this.$i18n.messages;
+      const locale = this.$i18n && this.$i18n.locale;
+      console.log('Debug: weekDays for locale =>', locale, messages && messages[locale]?.habits?.weekDays);
+      if (messages && messages[locale] && messages[locale].habits && messages[locale].habits.weekDays) {
+        return messages[locale].habits.weekDays;
+      }
+      return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    }
   },
   methods: {
     async fetchHabits() {

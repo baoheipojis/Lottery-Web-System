@@ -150,7 +150,10 @@
     "penaltyWarning": "Warning: You will apply a penalty for habit",
     "currentStreak": "Current Streak:",
     "longestStreak": "Longest Streak:",
-    "dayNames": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    "dayNames": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "weekDays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "consecutiveDaysFormat": "Consecutive {days} days",
+    "points": "plan points"
   },
   "plans": {
     "title": "Plan Management",
