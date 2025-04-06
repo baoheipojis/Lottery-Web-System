@@ -131,6 +131,10 @@
     "bonus2": "奖励2",
     "enablePenalty": "启用惩罚",
     "penaltyPoints": "惩罚点数",
+    "enableAutoComplete": "自动完成此习惯",
+    "autoCompleteHelp": "启用后，系统将在每天凌晨00:01自动标记此习惯为已完成",
+    "autoCompleteStatus": "自动完成",
+    "enabled": "已启用",
     "create": "创建习惯",
     "reset": "重置",
     "myHabits": "我的习惯",
@@ -164,7 +168,15 @@
     "penaltySuccess": "已执行惩罚，扣除 {points} 分",
     "penaltyFailure": "惩罚执行失败：{message}",
     "penaltyError": "惩罚操作出现错误：{message}",
-    "noDescription": "无额外描述"
+    "noDescription": "无额外描述",
+    "namePlaceholder": "例如：跑步、阅读、冥想...",
+    "descriptionPlaceholder": "描述这个习惯的详情...",
+    "threshold1Placeholder": "例如：3",
+    "bonus1Placeholder": "例如：10",
+    "threshold2Placeholder": "例如：7",
+    "bonus2Placeholder": "例如：30",
+    "penaltyPointsPlaceholder": "例如：10",
+    "editHabit": "编辑习惯"
   },
   "plans": {
     "title": "计划管理",
@@ -215,7 +227,12 @@
     "repeatInterval": "重复间隔",
     "intervalUnit": "间隔单位",
     "endDate": "结束日期",
-    "optional": "可选"
+    "optional": "可选",
+    "inputTitle": "输入计划标题",
+    "inputDescription": "输入计划描述",
+    "titlePlaceholder": "在此输入计划标题",
+    "descriptionPlaceholder": "在此描述您的计划（可选）",
+    "pointsPlaceholder": "输入奖励点数"
   },
   "pagination": {
     "previous": "上一页",

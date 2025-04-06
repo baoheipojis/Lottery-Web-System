@@ -179,6 +179,9 @@ public class HabitService {
             existingHabit.setPenaltyPoints(updatedHabit.getPenaltyPoints());
         }
         
+        // 更新自动完成属性
+        existingHabit.setAutoComplete(updatedHabit.isAutoComplete());
+        
         return habitRepository.save(existingHabit);
     }
     
@@ -209,6 +212,47 @@ public class HabitService {
                     System.out.println("Applied penalty of " + habit.getPenaltyPoints() + 
                                        " points for habit '" + habit.getName() + 
                                        "' not completed on " + yesterday);
+                }
+            }
+        }
+    }
+    
+    /**
+     * 自动标记习惯为已完成
+     * 每天凌晨00:01执行
+     */
+    @Scheduled(cron = "0 1 0 * * ?")
+    @Transactional
+    public void autoCompleteHabits() {
+        // 获取今天的日期
+        LocalDate today = LocalDate.now();
+        
+        // 获取所有习惯
+        List<Habit> allHabits = habitRepository.findAll();
+        
+        for (Habit habit : allHabits) {
+            // 只处理启用了自动完成的习惯
+            if (habit.isAutoComplete()) {
+                // 检查今天是否已完成该习惯
+                if (!habit.hasCompletionDate(today)) {
+                    // 自动标记为完成
+                    habit.addCompletionDate(today);
+                    
+                    // 计算连续天数
+                    int consecutiveDays = calculateConsecutiveDays(habit.getCompletionDates(), today);
+                    
+                    // 根据连续天数计算奖励
+                    int rewardPoints = calculateRewardPoints(habit, consecutiveDays);
+                    
+                    // 发放奖励
+                    lotteryState.addPlanPoints(rewardPoints, 
+                        "习惯【" + habit.getName() + "】自动完成获得奖励 (连续" + consecutiveDays + "天)");
+                    
+                    habitRepository.save(habit);
+                    
+                    System.out.println("Auto-completed habit '" + habit.getName() + 
+                                       "' for " + today + 
+                                       " with " + rewardPoints + " reward points");
                 }
             }
         }

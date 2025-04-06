@@ -131,6 +131,10 @@
     "bonus2": "Bonus 2",
     "enablePenalty": "Enable Penalty",
     "penaltyPoints": "Penalty Points",
+    "enableAutoComplete": "Auto-Complete This Habit",
+    "autoCompleteHelp": "When enabled, this habit will be automatically marked as completed at 12:01 AM every day",
+    "autoCompleteStatus": "Auto-Complete",
+    "enabled": "Enabled",
     "create": "Create Habit",
     "reset": "Reset",
     "myHabits": "My Habits",
@@ -153,7 +157,15 @@
     "dayNames": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     "weekDays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     "consecutiveDaysFormat": "Consecutive {days} days",
-    "points": "plan points"
+    "points": "plan points",
+    "namePlaceholder": "For example: running, reading, meditation...",
+    "descriptionPlaceholder": "Describe details of this habit...",
+    "threshold1Placeholder": "For example: 3",
+    "bonus1Placeholder": "For example: 10",
+    "threshold2Placeholder": "For example: 7",
+    "bonus2Placeholder": "For example: 30",
+    "penaltyPointsPlaceholder": "For example: 10",
+    "editHabit": "Edit Habit"
   },
   "plans": {
     "title": "Plan Management",
@@ -204,7 +216,12 @@
     "repeatInterval": "Repeat Interval",
     "intervalUnit": "interval time",
     "endDate": "End Date",
-    "optional": "optional"
+    "optional": "optional",
+    "inputTitle": "Enter plan title",
+    "inputDescription": "Enter plan description",
+    "titlePlaceholder": "Enter plan title here",
+    "descriptionPlaceholder": "Describe your plan here (optional)",
+    "pointsPlaceholder": "Enter reward points"
   },
   "pagination": {
     "previous": "Previous",

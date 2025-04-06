@@ -12,7 +12,7 @@
             id="habitName" 
             v-model="newHabit.name" 
             type="text" 
-            placeholder="例如：跑步、阅读、冥想..." 
+            :placeholder="$t('habits.namePlaceholder')" 
             required
           />
         </div>
@@ -22,7 +22,7 @@
           <textarea 
             id="habitDescription"
             v-model="newHabit.description"
-            placeholder="描述这个习惯的详情..."
+            :placeholder="$t('habits.descriptionPlaceholder')"
           ></textarea>
         </div>
         
@@ -45,7 +45,7 @@
               v-model.number="newHabit.consecutiveDaysThreshold1" 
               type="number" 
               min="2"
-              placeholder="例如：3"
+              :placeholder="$t('habits.threshold1Placeholder')"
             />
           </div>
           
@@ -56,7 +56,7 @@
               v-model.number="newHabit.bonusPoints1" 
               type="number" 
               min="1"
-              placeholder="例如：10"
+              :placeholder="$t('habits.bonus1Placeholder')"
             />
           </div>
         </div>
@@ -69,7 +69,7 @@
               v-model.number="newHabit.consecutiveDaysThreshold2" 
               type="number" 
               min="2"
-              placeholder="例如：7"
+              :placeholder="$t('habits.threshold2Placeholder')"
             />
           </div>
           
@@ -80,7 +80,7 @@
               v-model.number="newHabit.bonusPoints2" 
               type="number" 
               min="1"
-              placeholder="例如：30"
+              :placeholder="$t('habits.bonus2Placeholder')"
             />
           </div>
         </div>
@@ -105,9 +105,26 @@
               v-model.number="newHabit.penaltyPoints" 
               type="number" 
               min="1"
-              placeholder="例如：10"
+              :placeholder="$t('habits.penaltyPointsPlaceholder')"
               required
             />
+          </div>
+        </div>
+        
+        <!-- 自动完成设置部分 -->
+        <div class="auto-complete-section">
+          <div class="form-group">
+            <div class="checkbox-group">
+              <input 
+                id="enableAutoComplete" 
+                v-model="newHabit.autoComplete" 
+                type="checkbox"
+              />
+              <label for="enableAutoComplete">{{ $t('habits.enableAutoComplete') }}</label>
+            </div>
+            <div class="helper-text" v-if="newHabit.autoComplete">
+              {{ $t('habits.autoCompleteHelp') }}
+            </div>
           </div>
         </div>
         
@@ -153,6 +170,10 @@
             <div v-if="habit.enablePenalty" class="reward-item penalty">
               <span class="reward-label">{{ $t('habits.penalty') }}:</span>
               <span class="penalty-value">-{{ habit.penaltyPoints }} {{ $t('habits.points') }}</span>
+            </div>
+            <div v-if="habit.autoComplete" class="reward-item auto-complete">
+              <span class="reward-label">{{ $t('habits.autoCompleteStatus') }}:</span>
+              <span class="auto-complete-value">{{ $t('habits.enabled') }}</span>
             </div>
           </div>
           
@@ -306,6 +327,23 @@
             </div>
           </div>
           
+          <!-- 自动完成设置部分 -->
+          <div class="auto-complete-section">
+            <div class="form-group">
+              <div class="checkbox-group">
+                <input 
+                  id="editEnableAutoComplete" 
+                  v-model="editingHabit.autoComplete" 
+                  type="checkbox"
+                />
+                <label for="editEnableAutoComplete">{{ $t('habits.enableAutoComplete') }}</label>
+              </div>
+              <div class="helper-text" v-if="editingHabit.autoComplete">
+                {{ $t('habits.autoCompleteHelp') }}
+              </div>
+            </div>
+          </div>
+          
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">{{ $t('habits.save') }}</button>
             <button type="button" class="btn btn-secondary" @click="closeEditDialog">{{ $t('habits.cancel') }}</button>
@@ -362,7 +400,8 @@ export default {
         consecutiveDaysThreshold2: 7,
         bonusPoints2: 30,
         enablePenalty: false,
-        penaltyPoints: 10
+        penaltyPoints: 10,
+        autoComplete: false
       },
       currentMonths: {},
       showEditDialog: false,
@@ -435,7 +474,8 @@ export default {
         consecutiveDaysThreshold2: 7,
         bonusPoints2: 30,
         enablePenalty: false,
-        penaltyPoints: 10
+        penaltyPoints: 10,
+        autoComplete: false
       };
     },
     
@@ -923,6 +963,17 @@ export default {
   color: #f44336;
 }
 
+.reward-item.auto-complete {
+  border-top: 1px dashed #e0e0e0;
+  padding-top: 5px;
+  margin-top: 5px;
+}
+
+.auto-complete-value {
+  font-weight: bold;
+  color: #4CAF50;
+}
+
 .habit-calendar {
   margin-top: 15px;
   background-color: #f5f5f5;
@@ -1065,6 +1116,12 @@ export default {
   padding-top: 15px;
 }
 
+.auto-complete-section {
+  border-top: 1px dashed #e0e0e0;
+  margin-top: 15px;
+  padding-top: 15px;
+}
+
 .checkbox-group {
   display: flex;
   align-items: center;
@@ -1073,6 +1130,14 @@ export default {
 .checkbox-group input[type="checkbox"] {
   margin-right: 10px;
   transform: scale(1.2);
+}
+
+.helper-text {
+  font-size: 13px;
+  color: #757575;
+  margin-top: 5px;
+  margin-left: 26px;
+  font-style: italic;
 }
 
 .penalty-warning {

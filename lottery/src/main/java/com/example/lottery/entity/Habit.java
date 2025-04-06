@@ -48,6 +48,9 @@ public class Habit {
     @Transient
     private Set<LocalDate> completionDates;
 
+    @Column(name = "auto_complete", nullable = false)
+    private boolean autoComplete = false;
+
     // Getters and setters
     public Long getId() {
         return id;
@@ -165,5 +168,13 @@ public class Habit {
 
     public Set<String> getCompletionDateStrings() {
         return completionDateStrings;
+    }
+
+    public boolean isAutoComplete() {
+        return autoComplete;
+    }
+
+    public void setAutoComplete(boolean autoComplete) {
+        this.autoComplete = autoComplete;
     }
 }
