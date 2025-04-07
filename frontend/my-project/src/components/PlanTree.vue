@@ -325,12 +325,18 @@ export default {
     uncompletePlan(planId) {
       axios.post(`/api/plans/${planId}/uncomplete`)
         .then(() => {
+          console.log("成功取消完成计划:", planId);
           this.fetchPlans(); // 刷新以获取更新的结构
           this.showMessage('已撤销计划完成状态', 'info');
         })
         .catch(error => {
-          console.error('Error uncompleting plan:', error);
-          this.showMessage('撤销计划完成状态失败', 'error');
+          console.error('取消完成计划失败:', error);
+          // 显示更详细的错误信息
+          const errorMessage = error.response?.data?.message || '未知错误';
+          console.log('错误详情:', errorMessage);
+          this.showMessage('撤销计划完成状态失败: ' + errorMessage, 'error');
+          // 显示一个更明显的错误提示
+          alert('无法将计划标记为未完成: ' + errorMessage);
         });
     },
     

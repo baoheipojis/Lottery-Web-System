@@ -125,6 +125,7 @@
         <plan-item 
           :plan="child" 
           @complete="$emit('complete', $event)"
+          @uncomplete="$emit('uncomplete', $event)"
           @delete="$emit('delete', $event)"
           @add-child="$emit('add-child', $event)"
           @update="$emit('update', $event)"

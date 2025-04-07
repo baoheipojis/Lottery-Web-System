@@ -76,15 +76,22 @@ public class PlanService {
      */
     @Transactional
     public Plan uncompletePlan(Long id) {
+        System.out.println("开始取消完成计划，ID: " + id);
+        
         Plan plan = planRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("计划未找到"));
         
+        System.out.println("找到计划: " + plan.getTitle() + ", 已完成状态: " + plan.isCompleted());
+        
         if (!plan.isCompleted()) {
+            System.out.println("计划未完成，抛出异常");
             throw new RuntimeException("计划尚未完成，无需取消完成状态");
         }
         
-        // 如果这个计划是重复计划完成后生成的新实例的前身，可能需要考虑删除新实例
-        // 这里为简单起见，只处理当前计划的状态
+        // 如果有父计划，记录其状态
+        if (plan.getParent() != null) {
+            System.out.println("父计划: " + plan.getParent().getTitle() + ", 已完成状态: " + plan.getParent().isCompleted());
+        }
         
         // 设置为未完成状态
         plan.setCompleted(false);
@@ -94,9 +101,13 @@ public class PlanService {
         int rewardPoints = plan.getRewardPoints();
         lotteryState.consumePlanPoints(rewardPoints, "取消完成计划【" + plan.getTitle() + "】，扣除之前奖励的计划点");
         
-        System.out.println("Uncompleting plan: " + plan.getTitle());
+        System.out.println("已将计划标记为未完成: " + plan.getTitle());
         
-        return planRepository.save(plan);
+        // 保存并返回更新后的计划
+        Plan savedPlan = planRepository.save(plan);
+        System.out.println("已保存未完成的计划，ID: " + savedPlan.getId());
+        
+        return savedPlan;
     }
     
     private void createNextRepeatablePlan(Plan completedPlan) {

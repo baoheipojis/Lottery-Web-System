@@ -88,12 +88,18 @@ public class PlanController {
     }
     
     @PostMapping("/{id}/uncomplete")
-    public ResponseEntity<Plan> uncompletePlan(@PathVariable Long id) {
+    public ResponseEntity<?> uncompletePlan(@PathVariable Long id) {
         try {
             Plan uncompletedPlan = planService.uncompletePlan(id);
             return ResponseEntity.ok(uncompletedPlan);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(null);
+            // 返回更详细的错误信息
+            return ResponseEntity.badRequest().body(
+                Map.of(
+                    "message", "取消完成计划失败: " + e.getMessage(), 
+                    "status", "error"
+                )
+            );
         }
     }
     
