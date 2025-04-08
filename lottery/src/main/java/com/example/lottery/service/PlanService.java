@@ -97,9 +97,15 @@ public class PlanService {
         plan.setCompleted(false);
         plan.setActualCompletionTime(null);
         
-        // 扣除之前奖励的计划点
-        int rewardPoints = plan.getRewardPoints();
-        lotteryState.consumePlanPoints(rewardPoints, "取消完成计划【" + plan.getTitle() + "】，扣除之前奖励的计划点");
+        try {
+            // 扣除之前奖励的计划点
+            int rewardPoints = plan.getRewardPoints();
+            lotteryState.consumePlanPoints(rewardPoints, "取消完成计划【" + plan.getTitle() + "】，扣除之前奖励的计划点");
+            System.out.println("已扣除计划点: " + rewardPoints);
+        } catch (Exception e) {
+            System.err.println("扣除计划点失败: " + e.getMessage());
+            // 继续执行，允许点数为负
+        }
         
         System.out.println("已将计划标记为未完成: " + plan.getTitle());
         

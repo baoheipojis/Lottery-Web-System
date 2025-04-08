@@ -94,21 +94,37 @@ public class LotteryState {
         addPlanPoints(amount, "添加计划点");
     }
 
-    public void consumePlanPoints(int amount, String description) {
-        if (amount <= 0) {
-            throw new IllegalArgumentException("消耗的计划点数必须为正数");
+    /**
+     * 消费计划点，用于购买抽奖券或取消完成计划
+     * @param points 要消费的点数
+     * @param reason 消费原因
+     * @return 消费后的余额
+     */
+    public int consumePlanPoints(int points, String reason) {
+        // 打印原因字符串以便调试
+        System.out.println("消费计划点，原因: " + reason + ", 数量: " + points);
+        
+        // 检查是否是取消完成计划操作（使用更可靠的检查方式）
+        boolean isUncompletePlan = reason != null && 
+            (reason.contains("取消完成计划") || reason.contains("取消完成习惯"));
+        
+        // 输出检查结果
+        System.out.println("是否是取消完成操作: " + isUncompletePlan);
+        
+        // 如果不是取消完成计划/习惯操作，则验证余额是否足够
+        if (!isUncompletePlan && getCurrentPlanPoints() < points) {
+            throw new IllegalStateException("计划点不足，当前点数: " + getCurrentPlanPoints() + "，需要点数: " + points);
         }
 
-        if (getCurrentPlanPoints() < amount) {
-            throw new IllegalStateException("计划点不足，当前点数: " + getCurrentPlanPoints() + "，需要点数: " + amount);
-        }
-
+        // 记录消费
         PlanPointsRecord record = new PlanPointsRecord();
-        record.setAmountChange(-amount);
+        record.setAmountChange(-points);
         record.setTimestamp(LocalDateTime.now());
-        record.setBalanceAfterOperation(getCurrentPlanPoints() - amount);
-        record.setDescription(description);
+        record.setBalanceAfterOperation(getCurrentPlanPoints() - points);
+        record.setDescription(reason);
         planPointsRecordRepository.save(record);
+
+        return getCurrentPlanPoints() - points;
     }
 
     public void consumePlanPoints(int amount) {

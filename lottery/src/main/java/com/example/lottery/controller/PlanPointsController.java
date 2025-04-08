@@ -31,7 +31,11 @@ public class PlanPointsController {
         );
     }
     
-    // 添加删除所有计划点记录的接口
+    @GetMapping("/current")
+    public int getCurrentPoints() {
+        return lotteryState.getCurrentPlanPoints();
+    }
+
     @DeleteMapping("/all")
     public ResponseEntity<Map<String, String>> deleteAllPlanPointsRecords() {
         try {
