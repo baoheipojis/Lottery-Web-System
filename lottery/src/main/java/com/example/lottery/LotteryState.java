@@ -133,9 +133,14 @@ public class LotteryState {
 
     public void loadHistory() {
         List<LotteryHistory> history = lotteryHistoryRepository.findAll();
+        
+        // 确保历史记录按照抽取时间降序排序（最新的在前）
+        history.sort((h1, h2) -> h2.getDrawTime().compareTo(h1.getDrawTime()));
+        
         totalDraws = history.size();
         if (!history.isEmpty()) {
-            LotteryHistory lastHistory = history.get(history.size() - 1);
+            // 获取最新的记录（索引0）
+            LotteryHistory lastHistory = history.get(0);
             sinceLastFourStar = calculateSinceLastStar(history, 4);
             sinceLastFiveStar = calculateSinceLastStar(history, 5);
             lastFiveStar = lastHistory.getFiveStarType() != null ?
@@ -144,9 +149,10 @@ public class LotteryState {
     }
 
     private int calculateSinceLastStar(List<LotteryHistory> history, int rarity) {
+        // 假设history已经按时间从新到旧排序
         int count = 0;
-        for (int i = history.size() - 1; i >= 0; i--) {
-            if (history.get(i).getRarity() == rarity) {
+        for (LotteryHistory record : history) {
+            if (record.getRarity() == rarity) {
                 break;
             }
             count++;
