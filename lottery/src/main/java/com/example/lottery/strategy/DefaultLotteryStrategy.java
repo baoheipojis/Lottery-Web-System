@@ -64,8 +64,17 @@ public class DefaultLotteryStrategy implements LotteryStrategy {
             throw new IllegalStateException("No prizes available for the draw.");
         }
 
-        // 优先选择不可重复获取的奖品
-        var nonRepeatablePrizes = prizes.stream()
+        // 过滤出启用状态的奖品
+        var enabledPrizes = prizes.stream()
+                .filter(Prize::isEnabled)
+                .toList();
+        
+        if (enabledPrizes.isEmpty()) {
+            throw new IllegalStateException("No enabled prizes available for rarity " + rarity);
+        }
+
+        // 在启用的奖品中，优先选择不可重复获取的奖品
+        var nonRepeatablePrizes = enabledPrizes.stream()
                 .filter(prize -> !Boolean.TRUE.equals(prize.getIsRepeatable()))
                 .toList();
 
@@ -74,8 +83,8 @@ public class DefaultLotteryStrategy implements LotteryStrategy {
             return nonRepeatablePrizes.get(random.nextInt(nonRepeatablePrizes.size()));
         }
 
-        // 如果没有不可重复的奖品，从所有奖品中随机选择
-        return prizes.get(random.nextInt(prizes.size()));
+        // 如果没有不可重复的奖品，从所有启用的奖品中随机选择
+        return enabledPrizes.get(random.nextInt(enabledPrizes.size()));
     }
 
     private Prize getRandomPrizeByRarityAndType(int rarity, String type) {
@@ -83,9 +92,18 @@ public class DefaultLotteryStrategy implements LotteryStrategy {
         if (prizes.isEmpty()) {
             throw new IllegalStateException("No prizes available for the draw.");
         }
+        
+        // 过滤出启用状态的奖品
+        var enabledPrizes = prizes.stream()
+                .filter(Prize::isEnabled)
+                .toList();
+        
+        if (enabledPrizes.isEmpty()) {
+            throw new IllegalStateException("No enabled prizes available for rarity " + rarity + " and type " + type);
+        }
 
-        // 优先选择不可重复获取的奖品
-        var nonRepeatablePrizes = prizes.stream()
+        // 在启用的奖品中，优先选择不可重复获取的奖品
+        var nonRepeatablePrizes = enabledPrizes.stream()
                 .filter(prize -> !Boolean.TRUE.equals(prize.getIsRepeatable()))
                 .toList();
 
@@ -94,7 +112,7 @@ public class DefaultLotteryStrategy implements LotteryStrategy {
             return nonRepeatablePrizes.get(random.nextInt(nonRepeatablePrizes.size()));
         }
 
-        // 如果没有不可重复的奖品，从所有奖品中随机选择
-        return prizes.get(random.nextInt(prizes.size()));
+        // 如果没有不可重复的奖品，从所有启用的奖品中随机选择
+        return enabledPrizes.get(random.nextInt(enabledPrizes.size()));
     }
 }
