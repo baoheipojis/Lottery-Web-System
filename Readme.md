@@ -10,15 +10,24 @@ cd Lottery-Web-System/lottery
 ```
 ## 安装MySQL并配置数据库用户
 ### 安装MySQL
-根据系统环境自行安装，不在本文讨论范围。
+根据系统环境自行安装，下面介绍在Ubuntu上安装MySQL的方法
+```bash
+sudo apt update
+sudo apt install mysql-server
+```
+
+
 ### 配置数据库
+```
+sudo mysql -u root -p
+```
 
 创建数据库
 ```sql
 CREATE DATABASE lottery;
 ```
 
-在lottery/src/main/resources/application.properties中配置数据库连接
+在lottery/src/main/resources/application.properties中配置数据库连接，注意填你的数据库密码。
 ```
 spring.datasource.url=jdbc:mysql://localhost:3306/lottery
 spring.datasource.username=root

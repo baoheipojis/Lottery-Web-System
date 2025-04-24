@@ -4,10 +4,9 @@ module.exports = defineConfig({
 })
 module.exports = {
   devServer: {
-    port: 1111, // 设置开发服务器端口为1111
     proxy: {
       '/api': {
-        target: 'http://localhost:8081',
+        target: 'http://localhost:8081', // 这里可以根据环境修改
         changeOrigin: true
       }
     }
