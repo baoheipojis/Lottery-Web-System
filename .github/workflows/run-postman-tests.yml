@@ -1,0 +1,38 @@
+name: Run Postman API tests
+
+on:
+  push:
+    paths:
+      - 'postman/**'
+      - 'src/**'
+  pull_request:
+
+jobs:
+  postman-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install newman
+        run: npm install -g newman
+
+      - name: Start backend
+        run: |
+          cd lottery
+          ./mvnw spring-boot:run &
+          sleep 20   # 等待后端启动
+
+      - name: Run Postman collection
+        run: |
+          newman run postman/lottery-api-tests.postman_collection.json \
+            --env-var "baseUrl=http://localhost:8080"
+
+      - name: Stop backend
+        if: always()
+        run: |
+          pkill -f 'java.*lottery'

@@ -1,0 +1,75 @@
+{
+  "info": {
+    "name": "Lottery API Tests",
+    "_postman_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "GET /api/habits",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/api/habits", "host": ["{{baseUrl}}"], "path": ["api","habits"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"状态 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"返回数组\", () => pm.expect(pm.response.json()).to.be.an('array'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST /api/habits",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/api/habits", "host": ["{{baseUrl}}"], "path": ["api","habits"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"CI Habit\",\n  \"description\": \"Created by CI\",\n  \"baseRewardPoints\": 20\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"状态 200\", () => pm.response.to.have.status(200));",
+              "const b = pm.response.json();",
+              "pm.test(\"包含 id\", () => pm.expect(b).to.have.property('id'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET /api/prizes/draw",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/api/prizes/draw", "host": ["{{baseUrl}}"], "path": ["api","prizes","draw"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"抽奖成功\", () => pm.response.to.have.status(200));",
+              "pm.test(\"包含 prize 字段\", () => pm.expect(pm.response.json()).to.include.keys('id','name','rarity'));"
+            ]
+          }
+        }
+      ]
+    }
+    // …可以按需增加更多接口
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" }
+  ]
+}

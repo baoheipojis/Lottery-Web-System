@@ -1,6 +1,6 @@
 南大Web应用开发课程项目，一个简单的在线抽奖系统。
 ====================
-# 运行
+## 运行
 ```bash
 git clone https://github.com/baoheipojis/Lottery-Web-System.git
 ```
@@ -8,8 +8,8 @@ git clone https://github.com/baoheipojis/Lottery-Web-System.git
 ```bash
 cd Lottery-Web-System/lottery
 ```
-## 安装MySQL并配置数据库用户
-### 安装MySQL
+### 安装MySQL并配置数据库用户
+#### 安装MySQL
 根据系统环境自行安装，下面介绍在Ubuntu上安装MySQL的方法
 ```bash
 sudo apt update
@@ -17,7 +17,7 @@ sudo apt install mysql-server
 ```
 
 
-### 配置数据库
+#### 配置数据库
 ```
 sudo mysql -u root -p
 ```
@@ -40,7 +40,7 @@ spring.jpa.show-sql=true
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MariaDBDialect
 ```
 
-## 启动后端
+### 启动后端
 ```bash
 ./mvnw spring-boot:run
 ```
@@ -55,8 +55,8 @@ curl http://localhost:8080/api/prizes
 之类的方法来直接测试后端的api。
 
 上述命令会返回一个空的json数组，表示当前没有奖品。
-## 启动前端
-### 安装前端依赖
+### 启动前端
+#### 安装前端依赖
 前端基于vue，需要安装nodejs和npm。同样，请根据系统环境自行安装。
 
 ```
@@ -68,8 +68,17 @@ npm install
 npm run serve
 ```
 就可以启动前端了。
+## 计划
+本项目的核心需求就是：使用心理学技巧，使我向远期目标迈进。
+因此我们必须要支持多级计划的功能，一个大计划可以拆分成多个小计划，完成这些小计划后发放计划点奖励。计划点奖励可以抽奖，这样就可以把长期目标短期化。
+## 习惯
+习惯模块是我们新增的一个模块，致力于让我们养成新的好习惯，或者改掉坏习惯。
+习惯拥有自动完成功能，这是为了利用人的**损失厌恶**心理。让我们在不完成习惯时有痛苦感，从而促使我们完成习惯。
 
-# 抽奖规则
+## 奖品
+### 抽奖规则
+我们采用了某知名游戏的抽奖规则，具体如下：
+
 简单版：
 1. 奖励分为三星、四星、五星，五星又分为限定五星和普通五星。
 2. 每10抽必出一个四星或以上物品。
