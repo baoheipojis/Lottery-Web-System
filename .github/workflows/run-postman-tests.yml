@@ -30,7 +30,7 @@ jobs:
       - name: Run Postman collection
         run: |
           newman run postman/lottery-api-tests.postman_collection.json \
-            --env-var "baseUrl=http://localhost:8080"
+            --env-var "baseUrl=http://localhost:8081"
 
       - name: Stop backend
         if: always()
