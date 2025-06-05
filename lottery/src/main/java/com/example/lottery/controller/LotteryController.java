@@ -26,4 +26,28 @@ public class LotteryController {
         // Just pass through the data from the service without modification
         return lotteryService.getHistory();
     }
+    
+    @PutMapping("/history/{id}/redeem")
+    public ResponseEntity<Map<String, String>> updateRedeemStatus(@PathVariable Long id) {
+        try {
+            return lotteryService.updateRedeemStatus(id, true);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "message", "更新失败: " + e.getMessage(),
+                "status", "error"
+            ));
+        }
+    }
+    
+    @PutMapping("/history/{id}/unredeem")
+    public ResponseEntity<Map<String, String>> updateUnredeemStatus(@PathVariable Long id) {
+        try {
+            return lotteryService.updateRedeemStatus(id, false);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "message", "更新失败: " + e.getMessage(),
+                "status", "error"
+            ));
+        }
+    }
 }

@@ -41,4 +41,25 @@ public class LotteryHistoryController {
             ));
         }
     }
+    
+    @PutMapping("/{id}/redeem")
+    public ResponseEntity<Map<String, String>> updateRedeemStatus(@PathVariable Long id) {
+        try {
+            LotteryHistory history = lotteryHistoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("抽奖记录不存在"));
+            
+            history.setRedeemed(true);
+            lotteryHistoryRepository.save(history);
+            
+            return ResponseEntity.ok(Map.of(
+                "message", "兑现状态更新成功",
+                "status", "success"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "message", "更新失败: " + e.getMessage(),
+                "status", "error"
+            ));
+        }
+    }
 }

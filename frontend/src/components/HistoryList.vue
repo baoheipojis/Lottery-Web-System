@@ -195,13 +195,14 @@ export default {
     },
     toggleRedeemStatus(item) {
       const newStatus = !item.redeemed;
-      axios.put(`/api/lottery/history/${item.id}/redeem`, { redeemed: newStatus })
-        .then(response => {
-          // Update the local history item
-          const index = this.history.findIndex(h => h.id === item.id);
-          if (index !== -1) {
-            this.history[index] = response.data;
-          }
+      const url = newStatus 
+        ? `/api/lottery/history/${item.id}/redeem` 
+        : `/api/lottery/history/${item.id}/unredeem`;
+      
+      axios.put(url)
+        .then(() => {
+          // 更新本地数据
+          item.redeemed = newStatus;
           
           this.showMessage(
             `奖励 "${item.prizeName}" 已被标记为${newStatus ? '已兑现' : '未兑现'}`, 
