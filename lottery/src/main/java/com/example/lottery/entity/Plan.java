@@ -55,6 +55,13 @@ public class Plan {
     @Column(name = "repeat_end_date")
     private LocalDateTime repeatEndDate;
 
+    // 新增完成次数字段
+    @Column(name = "completion_count", nullable = false, columnDefinition = "int default 0")
+    private int completionCount = 0;
+
+    @Column(name = "current_streak", nullable = false, columnDefinition = "int default 0")
+    private int currentStreak = 0;
+
     // 定义重复类型枚举
     public enum RepeatType {
         DAILY("每天"),
@@ -175,6 +182,22 @@ public class Plan {
 
     public void setRepeatEndDate(LocalDateTime repeatEndDate) {
         this.repeatEndDate = repeatEndDate;
+    }
+
+    public int getCompletionCount() {
+        return completionCount;
+    }
+
+    public void setCompletionCount(int completionCount) {
+        this.completionCount = completionCount;
+    }
+
+    public int getCurrentStreak() {
+        return currentStreak;
+    }
+
+    public void setCurrentStreak(int currentStreak) {
+        this.currentStreak = currentStreak;
     }
     
     // Helper method to add a child

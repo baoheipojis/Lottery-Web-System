@@ -117,43 +117,31 @@ public class PlanService {
     }
     
     private void createNextRepeatablePlan(Plan completedPlan) {
-        try {
-            // 如果已经过了结束日期，不再创建新计划
-            if (completedPlan.getRepeatEndDate() != null && 
-                LocalDateTime.now().isAfter(completedPlan.getRepeatEndDate())) {
-                System.out.println("End date passed, not creating new plan");
-                return;
-            }
-            
-            Plan newPlan = new Plan();
-            newPlan.setTitle(completedPlan.getTitle());
-            newPlan.setDescription(completedPlan.getDescription());
-            newPlan.setRewardPoints(completedPlan.getRewardPoints());
-            newPlan.setRepeatable(completedPlan.isRepeatable());
-            newPlan.setRepeatType(completedPlan.getRepeatType());
-            newPlan.setRepeatInterval(completedPlan.getRepeatInterval());
-            newPlan.setRepeatEndDate(completedPlan.getRepeatEndDate());
-            
-            // 设置新计划的父计划
-            if (completedPlan.getParent() != null) {
-                newPlan.setParent(completedPlan.getParent());
-            }
-            
-            // 根据重复类型计算下一次的预计完成时间
-            LocalDateTime nextExpectedTime = calculateNextExpectedTime(
-                    completedPlan.getExpectedCompletionTime(), 
-                    completedPlan.getRepeatType(), 
-                    completedPlan.getRepeatInterval());
-            
-            newPlan.setExpectedCompletionTime(nextExpectedTime);
-            
-            // 保存新计划
-            Plan savedPlan = planRepository.save(newPlan);
-            System.out.println("Created new repeatable plan: " + savedPlan.getId() + " - " + savedPlan.getTitle());
-        } catch (Exception e) {
-            System.err.println("Error creating next repeatable plan: " + e.getMessage());
-            e.printStackTrace();
-        }
+        Plan nextPlan = new Plan();
+        nextPlan.setTitle(completedPlan.getTitle());
+        nextPlan.setDescription(completedPlan.getDescription());
+        nextPlan.setRewardPoints(completedPlan.getRewardPoints());
+        nextPlan.setParent(completedPlan.getParent());
+        nextPlan.setRepeatable(completedPlan.isRepeatable());
+        nextPlan.setRepeatType(completedPlan.getRepeatType());
+        nextPlan.setRepeatInterval(completedPlan.getRepeatInterval());
+        nextPlan.setRepeatEndDate(completedPlan.getRepeatEndDate());
+        nextPlan.setCompleted(false);
+        nextPlan.setCompletionCount(0); // 显式设置为0
+        nextPlan.setCurrentStreak(0); // 设置当前连续完成次数为0
+        nextPlan.setActualCompletionTime(null); // 确保为null
+        
+        // 根据重复类型计算下一次的预计完成时间
+        LocalDateTime nextExpectedTime = calculateNextExpectedTime(
+                completedPlan.getExpectedCompletionTime(), 
+                completedPlan.getRepeatType(), 
+                completedPlan.getRepeatInterval());
+        
+        nextPlan.setExpectedCompletionTime(nextExpectedTime);
+        
+        // 保存新计划
+        Plan savedPlan = planRepository.save(nextPlan);
+        System.out.println("Created new repeatable plan: " + savedPlan.getId() + " - " + savedPlan.getTitle());
     }
     
     private LocalDateTime calculateNextExpectedTime(LocalDateTime currentTime, 
