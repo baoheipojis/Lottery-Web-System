@@ -54,8 +54,7 @@
             <input 
               id="bonus1" 
               v-model.number="newHabit.bonusPoints1" 
-              type="number" 
-              min="1"
+              type="number"
               :placeholder="$t('habits.bonus1Placeholder')"
             />
           </div>
@@ -78,8 +77,7 @@
             <input 
               id="bonus2" 
               v-model.number="newHabit.bonusPoints2" 
-              type="number" 
-              min="1"
+              type="number"
               :placeholder="$t('habits.bonus2Placeholder')"
             />
           </div>
@@ -161,11 +159,15 @@
             </div>
             <div v-if="habit.consecutiveDaysThreshold1" class="reward-item">
               <span class="reward-label">{{ $t('habits.consecutiveDaysFormat', { days: habit.consecutiveDaysThreshold1 }) }}:</span>
-              <span class="reward-value">+{{ habit.bonusPoints1 }} {{ $t('habits.points') }}</span>
+              <span class="reward-value" :class="{ 'negative-bonus': habit.bonusPoints1 < 0 }">
+                {{ habit.bonusPoints1 >= 0 ? '+' : '' }}{{ habit.bonusPoints1 }} {{ $t('habits.points') }}
+              </span>
             </div>
             <div v-if="habit.consecutiveDaysThreshold2" class="reward-item">
               <span class="reward-label">{{ $t('habits.consecutiveDaysFormat', { days: habit.consecutiveDaysThreshold2 }) }}:</span>
-              <span class="reward-value">+{{ habit.bonusPoints2 }} {{ $t('habits.points') }}</span>
+              <span class="reward-value" :class="{ 'negative-bonus': habit.bonusPoints2 < 0 }">
+                {{ habit.bonusPoints2 >= 0 ? '+' : '' }}{{ habit.bonusPoints2 }} {{ $t('habits.points') }}
+              </span>
             </div>
             <div v-if="habit.enablePenalty" class="reward-item penalty">
               <span class="reward-label">{{ $t('habits.penalty') }}:</span>
@@ -274,8 +276,7 @@
               <input 
                 id="editBonus1" 
                 v-model.number="editingHabit.bonusPoints1" 
-                type="number" 
-                min="1"
+                type="number"
               />
             </div>
           </div>
@@ -296,8 +297,7 @@
               <input 
                 id="editBonus2" 
                 v-model.number="editingHabit.bonusPoints2" 
-                type="number" 
-                min="1"
+                type="number"
               />
             </div>
           </div>
@@ -950,6 +950,10 @@ export default {
 .reward-value {
   font-weight: bold;
   color: #2196F3;
+}
+
+.negative-bonus {
+  color: #f44336 !important;
 }
 
 .reward-item.penalty {
