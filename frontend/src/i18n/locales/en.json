@@ -100,7 +100,18 @@
     "redeemed": "Redeemed",
     "notRedeemed": "Not Redeemed",
     "loading": "Loading history...",
-    "noRecords": "No lottery records found. Try your luck with the lottery!"
+    "noRecords": "No lottery records found. Try your luck with the lottery!",
+    "noFilteredRecords": "No records match the filter criteria",
+    "filterByRarity": "Filter by Rarity",
+    "filterByRedeemStatus": "Filter by Redeem Status",
+    "filterByFiveStarType": "Filter by Five Star Type",
+    "searchPrize": "Search Prize Name",
+    "searchPlaceholder": "Enter prize name...",
+    "allRarities": "All Rarities",
+    "allStatuses": "All Statuses",
+    "allFiveStarTypes": "All Five Star Types",
+    "clearFilters": "Clear Filters",
+    "showingResults": "Showing {count} / {total} records"
   },
   "planPoints": {
     "title": "Plan Points",

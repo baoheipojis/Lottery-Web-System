@@ -2,9 +2,60 @@
   <div>
     <h1>{{ $t('history.title') }}</h1>
     
+    <!-- 筛选控件 -->
+    <div class="filter-section">
+      <div class="filter-group">
+        <label>{{ $t('history.filterByRarity') || '按稀有度筛选' }}:</label>
+        <select v-model="selectedRarity" @change="applyFilters">
+          <option value="">{{ $t('history.allRarities') || '全部稀有度' }}</option>
+          <option value="3">{{ $t('prizes.threeStar') || '三星' }}</option>
+          <option value="4">{{ $t('prizes.fourStar') || '四星' }}</option>
+          <option value="5">{{ $t('prizes.fiveStar') || '五星' }}</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label>{{ $t('history.filterByRedeemStatus') || '按兑换状态筛选' }}:</label>
+        <select v-model="selectedRedeemStatus" @change="applyFilters">
+          <option value="">{{ $t('history.allStatuses') || '全部状态' }}</option>
+          <option value="true">{{ $t('history.redeemed') || '已兑换' }}</option>
+          <option value="false">{{ $t('history.notRedeemed') || '未兑换' }}</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label>{{ $t('history.filterByFiveStarType') || '按五星类型筛选' }}:</label>
+        <select v-model="selectedFiveStarType" @change="applyFilters">
+          <option value="">{{ $t('history.allFiveStarTypes') || '全部五星类型' }}</option>
+          <option value="normal">{{ $t('prizes.fiveStarNormal') || '常驻五星' }}</option>
+          <option value="limited">{{ $t('prizes.fiveStarLimited') || '限定五星' }}</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label>{{ $t('history.searchPrize') || '搜索奖品名称' }}:</label>
+        <input 
+          type="text" 
+          v-model="searchTerm" 
+          @input="applyFilters"
+          :placeholder="$t('history.searchPlaceholder') || '输入奖品名称...'"
+          class="search-input"
+        />
+      </div>
+      
+      <div class="filter-actions">
+        <button @click="clearFilters" class="clear-btn">
+          {{ $t('history.clearFilters') || '清除筛选' }}
+        </button>
+        <span class="result-count">
+          {{ $t('history.showingResults', { count: filteredHistory.length, total: history.length }) || `显示 ${filteredHistory.length} / ${history.length} 条记录` }}
+        </span>
+      </div>
+    </div>
+    
     <div v-if="loading" class="loading">{{ $t('history.loading') }}</div>
-    <div v-else-if="history.length === 0" class="no-records">
-      {{ $t('history.noRecords') }}
+    <div v-else-if="filteredHistory.length === 0" class="no-records">
+      {{ history.length === 0 ? $t('history.noRecords') : ($t('history.noFilteredRecords') || '没有符合筛选条件的记录') }}
     </div>
     <div v-else>
       <table>
@@ -93,21 +144,27 @@ export default {
   data() {
     return {
       history: [],
+      filteredHistory: [],
       loading: true,
       message: '',
       messageType: '',
       currentPage: 1,
-      itemsPerPage: 10
+      itemsPerPage: 10,
+      // 筛选条件
+      selectedRarity: '',
+      selectedRedeemStatus: '',
+      selectedFiveStarType: '',
+      searchTerm: ''
     };
   },
   computed: {
     totalPages() {
-      return Math.ceil(this.history.length / this.itemsPerPage);
+      return Math.ceil(this.filteredHistory.length / this.itemsPerPage);
     },
     paginatedHistory() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
       const end = start + this.itemsPerPage;
-      return this.history.slice(start, end);
+      return this.filteredHistory.slice(start, end);
     },
     displayedPages() {
       // Generate array of page numbers to display with ellipsis
@@ -170,6 +227,7 @@ export default {
           // Store the data as is, without additional sorting
           // The backend should already return it in newest-to-oldest order
           this.history = response.data;
+          this.applyFilters(); // 应用筛选
         })
         .catch(error => {
           console.error('Error fetching history:', error);
@@ -231,6 +289,45 @@ export default {
       if (page >= 1 && page <= this.totalPages) {
         this.currentPage = page;
       }
+    },
+    applyFilters() {
+      let filtered = [...this.history];
+      
+      // 按稀有度筛选
+      if (this.selectedRarity) {
+        filtered = filtered.filter(item => item.rarity === parseInt(this.selectedRarity));
+      }
+      
+      // 按兑换状态筛选
+      if (this.selectedRedeemStatus !== '') {
+        const isRedeemed = this.selectedRedeemStatus === 'true';
+        filtered = filtered.filter(item => item.redeemed === isRedeemed);
+      }
+      
+      // 按五星类型筛选
+      if (this.selectedFiveStarType) {
+        filtered = filtered.filter(item => {
+          return item.rarity === 5 && item.fiveStarType?.toLowerCase() === this.selectedFiveStarType;
+        });
+      }
+      
+      // 按奖品名称搜索
+      if (this.searchTerm.trim()) {
+        const searchLower = this.searchTerm.toLowerCase().trim();
+        filtered = filtered.filter(item => 
+          item.prizeName.toLowerCase().includes(searchLower)
+        );
+      }
+      
+      this.filteredHistory = filtered;
+      this.currentPage = 1; // 重置到第一页
+    },
+    clearFilters() {
+      this.selectedRarity = '';
+      this.selectedRedeemStatus = '';
+      this.selectedFiveStarType = '';
+      this.searchTerm = '';
+      this.applyFilters();
     }
   }
 };
@@ -240,6 +337,73 @@ export default {
 h1 {
   text-align: center;
   margin-bottom: 20px;
+}
+
+.filter-section {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  gap: 10px;
+}
+
+.filter-group label {
+  min-width: 120px;
+  font-weight: bold;
+  color: #333;
+}
+
+.filter-group select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 14px;
+  min-width: 150px;
+}
+
+.search-input {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  min-width: 200px;
+}
+
+.filter-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.clear-btn {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.clear-btn:hover {
+  background-color: #5a6268;
+}
+
+.result-count {
+  font-size: 14px;
+  color: #666;
+  font-weight: bold;
 }
 
 table {

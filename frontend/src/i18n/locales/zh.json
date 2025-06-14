@@ -100,7 +100,18 @@
     "redeemed": "已兑换",
     "notRedeemed": "未兑换",
     "loading": "加载历史记录...",
-    "noRecords": "尚无抽卡记录，去试试抽卡吧！"
+    "noRecords": "尚无抽卡记录，去试试抽卡吧！",
+    "noFilteredRecords": "没有符合筛选条件的记录",
+    "filterByRarity": "按稀有度筛选",
+    "filterByRedeemStatus": "按兑换状态筛选",
+    "filterByFiveStarType": "按五星类型筛选",
+    "searchPrize": "搜索奖品名称",
+    "searchPlaceholder": "输入奖品名称...",
+    "allRarities": "全部稀有度",
+    "allStatuses": "全部状态",
+    "allFiveStarTypes": "全部五星类型",
+    "clearFilters": "清除筛选",
+    "showingResults": "显示 {count} / {total} 条记录"
   },
   "planPoints": {
     "title": "计划点",
